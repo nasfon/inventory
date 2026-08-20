@@ -10,11 +10,11 @@ Tracking checklist for the Inventory Management System (IMS) MVP.
 
 - [x] Finalize requirements and confirm scope (MVP vs Future)
 - [x] Confirm business rules (credit limits, receipt layout, currency)
-- [ ] Set up Git repository and branching strategy
+- [x] Set up Git repository and branching strategy
 - [ ] Provision Supabase project and Vercel project
 - [x] Scaffold Vite + React + TypeScript project
 - [x] Install and configure frontend libraries (MUI, Tailwind CSS, GSAP, TanStack Query/Table, React Hook Form, Zod)
-- [ ] Set up project folder structure, MUI theme, and shared component library
+- [x] Set up project folder structure, MUI theme, and shared component library
 - [x] Define environment variables and secrets management (.env.example)
 
 Milestone: Project foundation ready.
@@ -23,12 +23,13 @@ Milestone: Project foundation ready.
 
 ## Phase 1 — Authentication & Core Setup
 
-- [ ] Implement Supabase Auth (login, logout, session handling)
-- [ ] Create roles table and seed roles (Super Admin, Shop Admin, Cashier)
-- [ ] Implement user onboarding and role assignment
-- [ ] Create shops module (CRUD for Super Admin)
+- [x] Create database schema (tables, indexes, constraints, RLS policies, RPC functions, seed roles)
+- [x] Implement Supabase Auth (login, logout, session handling)
+- [x] Create roles table and seed roles (Super Admin, Shop Admin, Cashier)
+- [x] Implement user onboarding and role assignment
+- [x] Create shops module (CRUD for Super Admin)
 - [ ] Implement audit log foundation
-- [ ] Implement dashboard layout shell (top bar, sidebar, navigation)
+- [x] Implement dashboard layout shell (top bar, sidebar, navigation)
 
 Milestone: Authenticated application shell with roles and shops.
 
@@ -36,7 +37,7 @@ Milestone: Authenticated application shell with roles and shops.
 
 ## Phase 2 — Product & Inventory
 
-- [ ] Implement products CRUD
+- [x] Implement products CRUD
 - [ ] Implement stock quantity management
 - [ ] Implement product search, sort, filter, pagination
 - [ ] Implement low stock threshold and low stock detection
@@ -48,7 +49,7 @@ Milestone: Inventory module complete.
 
 ## Phase 3 — Customers & Credit
 
-- [ ] Implement customers CRUD
+- [x] Implement customers CRUD
 - [ ] Implement customer search by name/phone
 - [ ] Implement customer profile with purchase history
 - [ ] Implement credit balance tracking
@@ -60,7 +61,7 @@ Milestone: Customer and credit modules complete.
 
 ## Phase 4 — Sales, Receipts & Expenses
 
-- [ ] Implement sales processing (multiple products, payment methods)
+- [x] Implement sales processing (multiple products, payment methods)
 - [ ] Implement automatic stock deduction
 - [ ] Implement sales history and search
 - [ ] Implement receipt generation, printing, and PDF download

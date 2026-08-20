@@ -38,7 +38,11 @@ npm run preview   # preview production build
 
 ## Project Structure
 
-* `src/` — application source
+* `src/styles/` — MUI theme (`theme.ts`) and Tailwind CSS entry (`index.css`)
+* `src/providers/` — app-wide providers (TanStack Query, MUI Theme, CssBaseline)
+* `src/components/` — shared component library (`ui/`, `forms/`, `data/`, `feedback/`, `layout/`)
+* `src/features/` — route/feature modules (auth, products, sales, ...)
+* `src/hooks/`, `src/services/`, `src/types/`, `src/lib/` — custom hooks, Supabase data layer, types, utilities
 * `docs/` — product, spec, and engineering docs
 * `TODO.md` — phase-by-phase progress checklist (`[x]` done, `[ ]` pending)
 * `AGENTS.md` — agent guide; read first before any work

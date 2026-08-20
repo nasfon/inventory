@@ -117,12 +117,16 @@ All endpoints below map to database tables and are called with the Supabase clie
 | Operation          | Client Builder                                  |
 | ------------------ | ----------------------------------------------- |
 | List users         | `from('users').select('*, role:roles(*)')` (paginated/filtered) |
-| Create user        | `from('users').insert(payload).select().single()` |
+| Create user        | `rpc('admin_create_user', { email, password, fullName, phone, roleName, shopId })` (auth account + profile) |
+| Onboard user       | `rpc('admin_onboard_user', { userId, fullName, phone, roleName, shopId })` (assign role/shop to an existing auth account) |
 | Get user           | `from('users').select('*').eq('id', userId).single()` |
-| Update user        | `from('users').update(payload).eq('id', userId)` |
-| Deactivate user    | `from('users').update({ is_active: false }).eq('id', userId)` |
+| Update user        | `rpc('admin_update_user', { userId, fullName, phone, roleName, shopId, isActive })` (role/shop reassignment, activate/deactivate) |
+| Reset password     | `rpc('admin_reset_password', { userId, newPassword })` |
+| Unassigned auth users | `rpc('admin_list_unassigned_auth_users')` (auth accounts without a profile, pending onboarding) |
 
 List supports pagination, search, and filter by role.
+
+> **Note:** Creating or resetting credentials requires writing to `auth.users`, which the anon key cannot do. These operations run as `SECURITY DEFINER` functions that validate the caller's role/shop first (Super Admin, or Shop Admin within their own shop).
 
 ---
 
@@ -241,6 +245,11 @@ Business-critical operations run as PostgreSQL functions to guarantee atomicity 
 
 | Function                  | Purpose                                                        |
 | ------------------------- | -------------------------------------------------------------- |
+| `admin_create_user`       | Creates an auth account + profile with role/shop assignment (Super Admin / Shop Admin). |
+| `admin_onboard_user`      | Assigns role/shop to an existing auth account (creates its profile). |
+| `admin_update_user`       | Edits profile, reassigns role/shop, activates/deactivates a user. |
+| `admin_reset_password`    | Sets a new password for an existing user.                      |
+| `admin_list_unassigned_auth_users` | Lists auth accounts still waiting to be onboarded.      |
 | `create_sale`             | Inserts sale + sale items, deducts stock, writes stock history & audit log. |
 | `correct_sale`            | Adjusts items and stock, updates sale status, requires `reason`. |
 | `reverse_sale`            | Reverses a sale, restores stock, writes audit log, requires `reason`. |
