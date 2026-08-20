@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from 'react'
-import { useQuery } from '@tanstack/react-query'
-import type { Session } from '@supabase/supabase-js'
+import { useQuery, useQueryClient } from '@tanstack/react-query'
+import type { Session } from '@supabase/auth-js'
 import { AuthContext } from '../hooks/useAuth'
 import { getCurrentUserProfile, getSession, onAuthStateChange, signInWithPassword, signOut } from '../services/auth'
 
@@ -17,6 +17,7 @@ function useProfileQuery(userId: string | null) {
 export default function AuthProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null>(null)
   const [initializing, setInitializing] = useState(true)
+  const queryClient = useQueryClient()
 
   useEffect(() => {
     let active = true
@@ -44,6 +45,11 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
   const login = (email: string, password: string) => signInWithPassword(email, password)
   const logout = () => signOut()
 
+  const retryProfile = async () => {
+    if (!userId) return
+    await queryClient.refetchQueries({ queryKey: ['auth', 'profile', userId] })
+  }
+
   const value = {
     session,
     user: session?.user ?? null,
@@ -53,6 +59,7 @@ export default function AuthProvider({ children }: { children: ReactNode }) {
     initializing,
     login,
     logout,
+    retryProfile,
   }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

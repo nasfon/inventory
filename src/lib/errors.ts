@@ -1,4 +1,40 @@
+const networkPatterns = [
+  'failed to fetch',
+  'fetch failed',
+  'typeerror',
+  'network error',
+  'network request failed',
+  'networkerror',
+  'load failed',
+  'account unavailable',
+  'the internet connection appears to be offline',
+  'net::err_',
+  'err_internet_disconnected',
+  'enetunnel',
+  'enotfound',
+  'eai_again',
+  'getaddrinfo',
+  'connection refused',
+  'request timeout',
+]
+
+export const NETWORK_ERROR_MESSAGE = "You're offline. Check your internet connection and try again."
+
+export function isNetworkError(error: unknown): boolean {
+  if (typeof navigator !== 'undefined' && navigator.onLine === false) {
+    return true
+  }
+  if (error instanceof Error) {
+    const haystack = `${error.name} ${error.message}`.toLowerCase()
+    return networkPatterns.some((pattern) => haystack.includes(pattern))
+  }
+  return false
+}
+
 export function getAuthErrorMessage(error: unknown): string {
+  if (isNetworkError(error)) {
+    return NETWORK_ERROR_MESSAGE
+  }
   if (error instanceof Error) {
     const code = (error as { code?: string }).code
     if (typeof code === 'string') {
@@ -14,7 +50,7 @@ export function getAuthErrorMessage(error: unknown): string {
         case 'over_request_rate_limit':
           return 'Too many attempts. Please try again later.'
         case 'network_request_failed':
-          return 'Unable to reach the server. Check your connection and try again.'
+          return NETWORK_ERROR_MESSAGE
       }
     }
     if (error.message) {
@@ -43,6 +79,7 @@ const apiErrorMessages: Record<string, string> = {
   already_onboarded: 'This user has already been onboarded.',
   cannot_deactivate_self: 'You cannot deactivate your own account.',
   empty_items: 'Add at least one product to the sale.',
+  customer_required: 'Select a customer to complete the sale.',
   negative_payment: 'Amount paid cannot be negative.',
   credit_requires_customer: 'Select a customer for credit sales.',
   product_not_found: 'A product in the sale is no longer available.',
@@ -57,16 +94,20 @@ const apiErrorMessages: Record<string, string> = {
 }
 
 export function getApiErrorMessage(error: unknown): string {
-  if (error instanceof Error) {
-    const code = (error as { code?: string }).code
-    if (typeof code === 'string' && apiErrorMessages[code]) {
+  if (isNetworkError(error)) {
+    return NETWORK_ERROR_MESSAGE
+  }
+  if (error instanceof Error || (typeof error === 'object' && error !== null)) {
+    const err = error as { code?: unknown; message?: unknown }
+    const code = typeof err.code === 'string' ? err.code : ''
+    const message = typeof err.message === 'string' ? err.message : ''
+    if (code && apiErrorMessages[code]) {
       return apiErrorMessages[code]
     }
-    const message = error.message ?? ''
-    if (apiErrorMessages[message]) {
+    if (message && apiErrorMessages[message]) {
       return apiErrorMessages[message]
     }
-    if (message && !/^(fetch|Failed|Network)/i.test(message)) {
+    if (message && !/^(fetch|failed|network|typeerror)/i.test(message)) {
       return message
     }
   }

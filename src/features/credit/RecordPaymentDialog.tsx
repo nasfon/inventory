@@ -10,7 +10,7 @@ import DialogContent from '@mui/material/DialogContent'
 import DialogTitle from '@mui/material/DialogTitle'
 import MenuItem from '@mui/material/MenuItem'
 import Typography from '@mui/material/Typography'
-import { FormSelect, FormTextField } from '../../components/forms'
+import { FormMoneyField, FormSelect } from '../../components/forms'
 import { formatCurrency } from '../../lib/utils'
 import { CREDIT_PAYMENT_METHOD_LABELS } from '../../types/credit'
 import {
@@ -64,13 +64,11 @@ export default function RecordPaymentDialog({
             Recording a payment toward {customerName}&apos;s outstanding balance of {formatCurrency(outstanding)}.
           </Typography>
           {submitError && <Alert severity="error">{submitError}</Alert>}
-          <FormTextField
+          <FormMoneyField
             name="amount"
             control={control}
             label="Amount"
-            type="number"
             autoFocus
-            slotProps={{ htmlInput: { min: 0.01, max: outstanding, step: '0.01' } }}
           />
           <FormSelect name="payment_method" control={control} label="Payment method">
             {CREDIT_PAYMENT_METHOD_OPTIONS.map((method) => (

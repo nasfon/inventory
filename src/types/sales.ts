@@ -50,3 +50,23 @@ export interface SaleRecord {
 export interface SaleDetail extends SaleRecord {
   items: SaleItemRecord[]
 }
+
+export interface SaleListParams {
+  page: number
+  pageSize: number
+  search?: string
+  shopId?: string
+  status?: SaleStatus | ''
+  paymentMethod?: PaymentMethod | ''
+  dateFrom?: string
+  dateTo?: string
+}
+
+export interface SaleListRow extends SaleRecord {
+  customer_name: string | null
+}
+
+export interface SaleListResult {
+  rows: SaleListRow[]
+  count: number
+}

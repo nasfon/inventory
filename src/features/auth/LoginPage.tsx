@@ -1,6 +1,4 @@
-import { useState } from 'react'
-import { useForm } from 'react-hook-form'
-import { zodResolver } from '@hookform/resolvers/zod'
+import { useState, type FormEvent } from 'react'
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -9,34 +7,47 @@ import CardContent from '@mui/material/CardContent'
 import CircularProgress from '@mui/material/CircularProgress'
 import IconButton from '@mui/material/IconButton'
 import InputAdornment from '@mui/material/InputAdornment'
+import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import Visibility from '@mui/icons-material/Visibility'
 import VisibilityOff from '@mui/icons-material/VisibilityOff'
-import { FormTextField } from '../../components/forms'
 import Logo from '../../components/ui/Logo'
+import OfflineBanner from '../../components/feedback/OfflineBanner'
 import { getAuthErrorMessage } from '../../lib/errors'
 import { useAuth } from '../../hooks/useAuth'
-import { loginSchema, type LoginFormValues } from './loginSchema'
+
+const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false)
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
+  const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({})
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const { login } = useAuth()
-  const {
-    control,
-    handleSubmit,
-    formState: { isSubmitting },
-  } = useForm<LoginFormValues>({
-    resolver: zodResolver(loginSchema),
-    defaultValues: { email: '', password: '' },
-  })
 
-  const onSubmit = async (values: LoginFormValues) => {
+  const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const nextErrors: { email?: string; password?: string } = {}
+    if (!email.trim()) {
+      nextErrors.email = 'Email is required'
+    } else if (!EMAIL_PATTERN.test(email.trim())) {
+      nextErrors.email = 'Enter a valid email address'
+    }
+    if (!password) {
+      nextErrors.password = 'Password is required'
+    }
+    setFieldErrors(nextErrors)
+    if (Object.keys(nextErrors).length > 0) return
+
     setErrorMessage(null)
+    setIsSubmitting(true)
     try {
-      await login(values.email, values.password)
+      await login(email.trim(), password)
     } catch (error) {
       setErrorMessage(getAuthErrorMessage(error))
+      setIsSubmitting(false)
     }
   }
 
@@ -45,12 +56,16 @@ export default function LoginPage() {
       sx={{
         minHeight: '100vh',
         display: 'flex',
+        flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
         background: 'linear-gradient(160deg, #eff6ff 0%, #ffffff 100%)',
         p: 2,
       }}
     >
+      <Box sx={{ width: '100%', maxWidth: 460, mb: 2 }}>
+        <OfflineBanner />
+      </Box>
       <Card
         sx={{
           width: '100%',
@@ -73,24 +88,30 @@ export default function LoginPage() {
           <Box
             component="form"
             noValidate
-            onSubmit={handleSubmit(onSubmit)}
+            onSubmit={onSubmit}
             sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}
           >
             {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
-            <FormTextField
-              name="email"
-              control={control}
+            <TextField
               label="Email"
               type="email"
+              value={email}
+              onChange={(event) => setEmail(event.target.value)}
+              fullWidth
               autoComplete="email"
               autoFocus
+              error={Boolean(fieldErrors.email)}
+              helperText={fieldErrors.email}
             />
-            <FormTextField
-              name="password"
-              control={control}
+            <TextField
               label="Password"
               type={showPassword ? 'text' : 'password'}
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              fullWidth
               autoComplete="current-password"
+              error={Boolean(fieldErrors.password)}
+              helperText={fieldErrors.password}
               slotProps={{
                 input: {
                   endAdornment: (

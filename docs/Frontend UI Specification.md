@@ -30,7 +30,7 @@ The goal is to provide a clean, responsive, modern, and easy-to-use experience a
 
 # 3. Design System
 
-The UI is built with **Material UI (MUI)** as the component library, **Tailwind CSS** for layout and utility styling, and **GSAP** for animations.
+The UI is built with **Material UI (MUI)** as the component library and **Tailwind CSS** for layout and utility styling.
 
 ## Colors
 
@@ -67,7 +67,7 @@ Use an 8px spacing system throughout the application (MUI `theme.spacing()` and 
 
 ## Animations
 
-* GSAP handles page transitions, dashboard widget entrance, sidebar, and micro-interactions.
+* Use lightweight CSS transitions (transform/opacity) for hover and focus states; no heavy animation library is bundled.
 * Respect `prefers-reduced-motion` (disable heavy animation for users who opt out).
 
 ---
@@ -345,6 +345,7 @@ Displays
 Buttons
 
 * Print
+* Save Image (PNG)
 * Download PDF
 
 ---

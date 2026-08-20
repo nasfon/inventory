@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react'
-import type { Session, User } from '@supabase/supabase-js'
+import type { Session, User } from '@supabase/auth-js'
 import type { UserProfile } from '../types/auth'
 
 export interface AuthContextValue {
@@ -11,6 +11,7 @@ export interface AuthContextValue {
   initializing: boolean
   login: (email: string, password: string) => Promise<void>
   logout: () => Promise<void>
+  retryProfile: () => Promise<void>
 }
 
 export const AuthContext = createContext<AuthContextValue | null>(null)

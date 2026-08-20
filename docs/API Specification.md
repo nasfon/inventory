@@ -250,7 +250,7 @@ Business-critical operations run as PostgreSQL functions to guarantee atomicity 
 | `admin_update_user`       | Edits profile, reassigns role/shop, activates/deactivates a user. |
 | `admin_reset_password`    | Sets a new password for an existing user.                      |
 | `admin_list_unassigned_auth_users` | Lists auth accounts still waiting to be onboarded.      |
-| `create_sale`             | Inserts sale + sale items, deducts stock, writes stock history & audit log. |
+| `create_sale`             | Inserts sale + sale items, deducts stock, writes stock history & audit log. Requires a customer (`p_customer_id`) for every sale regardless of payment method. |
 | `correct_sale`            | Adjusts items and stock, updates sale status, requires `reason`. |
 | `reverse_sale`            | Reverses a sale, restores stock, writes audit log, requires `reason`. |
 | `record_credit_payment`   | Inserts credit payment, updates customer `total_credit`, validates against outstanding balance. |

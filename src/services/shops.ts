@@ -23,6 +23,17 @@ export async function listActiveShops(): Promise<ShopOption[]> {
   return (data ?? []).map((row) => ({ id: row.id as string, name: row.name as string }))
 }
 
+export async function getShop(shopId: string): Promise<ShopRecord | null> {
+  const { data, error } = await supabase
+    .from('shops')
+    .select(shopSelect)
+    .eq('id', shopId)
+    .maybeSingle()
+
+  if (error) throw error
+  return data ? (data as ShopRecord) : null
+}
+
 export async function listShops(params: ShopListParams): Promise<ShopListResult> {
   const { page, pageSize, search, status } = params
   const from = page * pageSize

@@ -5,6 +5,8 @@ import type {
   PaymentMethod,
   SaleDetail,
   SaleItemRecord,
+  SaleListParams,
+  SaleListResult,
   SaleRecord,
   SaleStatus,
 } from '../types/sales'
@@ -91,5 +93,46 @@ export async function listCustomerSales(
   if (error) throw error
 
   const rows = (data ?? []).map((row) => mapSaleRow(row as Record<string, unknown>))
+  return { rows, count: count ?? rows.length }
+}
+
+export async function listSales(params: SaleListParams): Promise<SaleListResult> {
+  const { page, pageSize, search, shopId, status, paymentMethod, dateFrom, dateTo } = params
+  const from = page * pageSize
+  const to = from + pageSize - 1
+
+  let query = supabase
+    .from('sales')
+    .select(`${saleSelect}, customer:customers(full_name)`, { count: 'exact' })
+    .order('created_at', { ascending: false })
+    .range(from, to)
+
+  if (shopId) {
+    query = query.eq('shop_id', shopId)
+  }
+  if (search) {
+    query = query.or(`receipt_number.ilike.%${search}%,customer.full_name.ilike.%${search}%`)
+  }
+  if (status) {
+    query = query.eq('status', status)
+  }
+  if (paymentMethod) {
+    query = query.eq('payment_method', paymentMethod)
+  }
+  if (dateFrom) {
+    query = query.gte('created_at', `${dateFrom}T00:00:00.000Z`)
+  }
+  if (dateTo) {
+    query = query.lte('created_at', `${dateTo}T23:59:59.999Z`)
+  }
+
+  const { data, error, count } = await query
+  if (error) throw error
+
+  const rows = (data ?? []).map((row) => {
+    const sale = mapSaleRow(row as Record<string, unknown>)
+    const customer = (row as { customer?: { full_name?: string } }).customer
+    return { ...sale, customer_name: customer?.full_name ?? null }
+  })
   return { rows, count: count ?? rows.length }
 }

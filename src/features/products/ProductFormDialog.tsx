@@ -12,7 +12,7 @@ import DialogTitle from '@mui/material/DialogTitle'
 import FormControlLabel from '@mui/material/FormControlLabel'
 import MenuItem from '@mui/material/MenuItem'
 import Switch from '@mui/material/Switch'
-import { FormSelect, FormTextField } from '../../components/forms'
+import { FormMoneyField, FormSelect, FormTextField } from '../../components/forms'
 import type { ProductRecord } from '../../types/products'
 import type { ShopOption } from '../../types/users'
 import {
@@ -52,20 +52,20 @@ export default function ProductFormDialog({
 }: ProductFormDialogProps) {
   const isCreate = mode === 'create'
 
-  const createDefaults: CreateProductFormValues = {
+  const createDefaults: ProductFormInput = {
     shop_id: defaultShopId,
     name: '',
     sku: '',
-    quantity: 0,
-    selling_price: 0,
-    minimum_stock: 0,
+    quantity: '',
+    selling_price: '',
+    minimum_stock: '',
   }
-  const editDefaults: EditProductFormValues = {
+  const editDefaults: ProductFormInput = {
     name: product?.name ?? '',
     sku: product?.sku ?? '',
-    quantity: product?.quantity ?? 0,
-    selling_price: product?.selling_price ?? 0,
-    minimum_stock: product?.minimum_stock ?? 0,
+    quantity: product?.quantity ?? '',
+    selling_price: product?.selling_price ?? '',
+    minimum_stock: product?.minimum_stock ?? '',
     is_active: product?.is_active ?? true,
   }
 
@@ -112,12 +112,10 @@ export default function ProductFormDialog({
             slotProps={{ htmlInput: { min: 0, step: 1 } }}
             autoComplete="off"
           />
-          <FormTextField
+          <FormMoneyField
             name="selling_price"
             control={control}
             label="Selling price"
-            type="number"
-            slotProps={{ htmlInput: { min: 0, step: '0.01' } }}
             autoComplete="off"
           />
           <FormTextField

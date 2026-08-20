@@ -9,6 +9,7 @@ import Inventory2 from '@mui/icons-material/Inventory2'
 import Payments from '@mui/icons-material/Payments'
 import People from '@mui/icons-material/People'
 import PointOfSale from '@mui/icons-material/PointOfSale'
+import ReceiptLong from '@mui/icons-material/ReceiptLong'
 import Settings from '@mui/icons-material/Settings'
 import Store from '@mui/icons-material/Store'
 import type { RoleName } from '../types/auth'
@@ -19,13 +20,17 @@ const ShopsPage = lazy(() => import('../features/shops/ShopsPage'))
 const ProductsPage = lazy(() => import('../features/products/ProductsPage'))
 const CustomersPage = lazy(() => import('../features/customers/CustomersPage'))
 const SalesPage = lazy(() => import('../features/sales/NewSalePage'))
+const SalesHistoryPage = lazy(() => import('../features/sales/SalesHistoryPage'))
 const CreditBookPage = lazy(() => import('../features/credit/CreditBookPage'))
+const AuditLogsPage = lazy(() => import('../features/audit/AuditLogsPage'))
+const ExpensesPage = lazy(() => import('../features/expenses/ExpensesPage'))
 
 export type PageKey =
   | 'dashboard'
   | 'products'
   | 'customers'
   | 'sales'
+  | 'sales-history'
   | 'credit-book'
   | 'expenses'
   | 'reports'
@@ -39,7 +44,7 @@ export interface NavItem {
   label: string
   icon: ComponentType<SvgIconProps>
   roles?: RoleName[]
-  Page?: ComponentType
+  Page?: ComponentType<{ onNavigate?: (key: PageKey) => void }>
   placeholder?: string
 }
 
@@ -64,6 +69,12 @@ export const navItems: NavItem[] = [
     Page: SalesPage,
   },
   {
+    key: 'sales-history',
+    label: 'Sales History',
+    icon: ReceiptLong,
+    Page: SalesHistoryPage,
+  },
+  {
     key: 'credit-book',
     label: 'Credit Book',
     icon: AccountBalanceWallet,
@@ -75,7 +86,7 @@ export const navItems: NavItem[] = [
     label: 'Expenses',
     icon: Payments,
     roles: ['super_admin', 'shop_admin'],
-    placeholder: 'Expense recording is coming soon.',
+    Page: ExpensesPage,
   },
   {
     key: 'reports',
@@ -89,7 +100,7 @@ export const navItems: NavItem[] = [
     label: 'Audit Logs',
     icon: History,
     roles: ['super_admin', 'shop_admin'],
-    placeholder: 'The audit log viewer is coming soon.',
+    Page: AuditLogsPage,
   },
   {
     key: 'shops',

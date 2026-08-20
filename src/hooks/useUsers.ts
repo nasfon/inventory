@@ -26,6 +26,14 @@ export function useUnassignedUsers() {
   })
 }
 
+export function useUserOptions(shopId: string | null) {
+  return useQuery({
+    queryKey: ['users', 'options', shopId ?? null],
+    queryFn: () => usersService.listUserOptions(shopId ?? undefined),
+    staleTime: 60_000,
+  })
+}
+
 export function useRoles() {
   return useQuery({
     queryKey: ['roles'],

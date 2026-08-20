@@ -10,6 +10,15 @@ export function useShops() {
   })
 }
 
+export function useShopDetail(shopId: string | null) {
+  return useQuery({
+    queryKey: ['shops', 'detail', shopId],
+    queryFn: () => shopsService.getShop(shopId as string),
+    enabled: Boolean(shopId),
+    staleTime: Infinity,
+  })
+}
+
 export function useShopsList(params: ShopListParams) {
   return useQuery({
     queryKey: ['shops', 'list', params],

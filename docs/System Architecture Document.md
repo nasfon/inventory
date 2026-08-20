@@ -50,7 +50,7 @@ Each layer has a single responsibility.
 * Vite 8 + React 19 (SPA)
 * TypeScript
 * Material UI (MUI) + Tailwind CSS 4
-* GSAP (animations)
+* CSS transitions (animations; no heavy animation library)
 * TanStack Query (server state)
 * TanStack Table (data tables)
 * React Hook Form + Zod (forms & validation)

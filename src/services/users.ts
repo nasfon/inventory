@@ -120,3 +120,22 @@ export async function listUnassignedAuthUsers(): Promise<UnassignedAuthUser[]> {
   if (error) throw error
   return (data ?? []) as UnassignedAuthUser[]
 }
+
+export async function listUserOptions(shopId?: string): Promise<{ id: string; full_name: string }[]> {
+  let query = supabase
+    .from('users')
+    .select('id, full_name')
+    .is('deleted_at', null)
+    .order('full_name')
+
+  if (shopId) {
+    query = query.eq('shop_id', shopId)
+  }
+
+  const { data, error } = await query
+  if (error) throw error
+  return (data ?? []).map((row) => ({
+    id: row.id as string,
+    full_name: row.full_name as string,
+  }))
+}

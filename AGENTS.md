@@ -26,7 +26,7 @@ Read this file before doing any work in this repository.
 | Language | TypeScript |
 | Component library | Material UI (MUI) |
 | Styling | Tailwind CSS v4 (via `@tailwindcss/vite`) |
-| Animation | GSAP |
+| Animation | CSS transitions (no heavy animation library) |
 | Server state | TanStack Query |
 | Data tables | TanStack Table |
 | Forms | React Hook Form |
@@ -60,9 +60,8 @@ When a choice makes the app slower, it is rejected and replaced with the faster 
 * **Import MUI parts, never barrels.** Import components individually
   (`import Button from '@mui/material/Button'`), and icons individually from
   `@mui/icons-material`. Never `import * as MUI from '@mui/material'`.
-* **GSAP: import only what is used** (`gsap`, `ScrollTrigger`, etc.). Never
-  import the whole `gsap/all`.
-* **Vendor chunk splitting** in `vite.config.ts`: split `react`, `mui`, `gsap`,
+* **No animation library is bundled** — use lightweight CSS transitions only.
+* **Vendor chunk splitting** in `vite.config.ts`: split `react`, `mui`,
   `@tanstack/*` into separate cached chunks.
 * **Target:** initial JS payload as small as possible; lazy-load feature routes
   so the login/dashboard shell stays light.
@@ -101,7 +100,7 @@ When a choice makes the app slower, it is rejected and replaced with the faster 
   can exceed ~100 rows). Never render hundreds of DOM rows unconditionally.
 * Avoid anonymous functions/objects recreated inside frequently re-rendering
   lists; key lists correctly.
-* Animations (GSAP) must not run on every render — trigger on mount/state
+* Animations must not run on every render — trigger on mount/state
   change only, and keep them GPU-friendly (`transform`/`opacity`).
 * Respect `prefers-reduced-motion`: disable heavy animation for those users.
 
@@ -130,7 +129,7 @@ When a choice makes the app slower, it is rejected and replaced with the faster 
 | `select('*')` on wide tables | Explicit column selection |
 | Loading entire lists into the client | Server-side pagination (`range`) |
 | Debounce-less search-on-change | Debounced queries |
-| Heavy GSAP animations on scroll/scroll-listener loops | GPU-friendly transforms, throttled |
+| Heavy scroll/scroll-listener animation loops | GPU-friendly transforms, throttled |
 | `useMemo`/`useCallback` everywhere | React Compiler + profiling |
 
 ---

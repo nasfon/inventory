@@ -28,7 +28,7 @@ Milestone: Project foundation ready.
 - [x] Create roles table and seed roles (Super Admin, Shop Admin, Cashier)
 - [x] Implement user onboarding and role assignment
 - [x] Create shops module (CRUD for Super Admin)
-- [ ] Implement audit log foundation
+- [x] Implement audit log foundation
 - [x] Implement dashboard layout shell (top bar, sidebar, navigation)
 
 Milestone: Authenticated application shell with roles and shops.
@@ -63,10 +63,10 @@ Milestone: Customer and credit modules complete.
 
 - [x] Implement sales processing (multiple products, payment methods)
 - [ ] Implement automatic stock deduction
-- [ ] Implement sales history and search
-- [ ] Implement receipt generation, printing, and PDF download
+- [x] Implement sales history and search
+- [x] Implement receipt generation, printing, and PDF download
 - [ ] Implement sales correction and reversal with reason and audit trail
-- [ ] Implement expenses module
+- [x] Implement expenses module
 
 Milestone: Core operational modules complete.
 
@@ -74,7 +74,7 @@ Milestone: Core operational modules complete.
 
 ## Phase 5 — Reports, Dashboard & Settings
 
-- [ ] Implement dashboard statistics and widgets
+- [x] Implement dashboard statistics and widgets
 - [ ] Implement reports (sales, revenue, expenses, credit, inventory)
 - [ ] Implement business settings
 - [ ] Implement role-based UI visibility

@@ -13,7 +13,7 @@ import ShoppingCartCheckout from '@mui/icons-material/ShoppingCartCheckout'
 import PageHeader from '../../components/ui/PageHeader'
 import EmptyState from '../../components/ui/EmptyState'
 import { getApiErrorMessage } from '../../lib/errors'
-import { formatCurrency, roundToTwo } from '../../lib/utils'
+import { formatCurrency, formatMoneyInput, roundToTwo, sanitizeMoneyInput } from '../../lib/utils'
 import { useAuth } from '../../hooks/useAuth'
 import { useShops } from '../../hooks/useShops'
 import { useCreateSale } from '../../hooks/useSales'
@@ -47,10 +47,10 @@ export default function NewSalePage() {
   const amountPaid = amountPaidInput ?? String(total)
   const amountPaidNum = Number(amountPaid)
   const overpayment = Number.isFinite(amountPaidNum) && amountPaidNum > total
-  const creditRequiresCustomer = paymentMethod === 'credit' && !customer
+  const customerMissing = !customer
   const amountValid = Number.isFinite(amountPaidNum) && amountPaidNum >= 0 && !overpayment
   const canComplete =
-    Boolean(shopId) && cart.length > 0 && amountValid && !creditRequiresCustomer && !createSale.isPending
+    Boolean(shopId) && cart.length > 0 && !customerMissing && amountValid && !createSale.isPending
 
   const handleAddProduct = (product: ProductRecord) => {
     setCart((prev) => {
@@ -195,11 +195,15 @@ export default function NewSalePage() {
               </Stack>
               <TextField
                 label="Amount paid"
-                type="number"
-                value={amountPaid}
-                onChange={(event) => setAmountPaidInput(event.target.value)}
+                type="text"
+                inputMode="decimal"
+                value={
+                  amountPaidInput === null
+                    ? formatMoneyInput(String(total))
+                    : formatMoneyInput(amountPaidInput)
+                }
+                onChange={(event) => setAmountPaidInput(sanitizeMoneyInput(event.target.value))}
                 size="small"
-                slotProps={{ htmlInput: { min: 0, max: total, step: '0.01' } }}
                 fullWidth
               />
               {overpayment ? (
@@ -225,9 +229,9 @@ export default function NewSalePage() {
                   </Typography>
                 </Stack>
               )}
-              {creditRequiresCustomer && (
+              {customerMissing && (
                 <Typography variant="body2" color="error.main">
-                  Select a customer for credit sales.
+                  Select a customer to complete the sale.
                 </Typography>
               )}
               {submitError && <Alert severity="error">{submitError}</Alert>}
@@ -243,7 +247,7 @@ export default function NewSalePage() {
               <Button variant="outlined" onClick={handleCancel} disabled={createSale.isPending}>
                 Cancel
               </Button>
-              {!canComplete && cart.length === 0 && !submitError && (
+              {!canComplete && cart.length === 0 && !submitError && !customerMissing && (
                 <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
                   Add at least one product to continue.
                 </Typography>
@@ -253,7 +257,11 @@ export default function NewSalePage() {
         </Stack>
       )}
 
-      <SaleSuccessDialog open={successSale !== null} sale={successSale} onClose={() => setSuccessSale(null)} />
+      <SaleSuccessDialog
+        open={successSale !== null}
+        sale={successSale}
+        onClose={() => setSuccessSale(null)}
+      />
     </Box>
   )
 }

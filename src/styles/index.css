@@ -52,3 +52,38 @@ body {
     transition-duration: 0.01ms !important;
   }
 }
+
+.receipt-print-area {
+  display: none;
+}
+
+@page {
+  size: A4;
+  margin: 0;
+}
+
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .receipt-print-area {
+    display: block;
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 210mm;
+    min-height: 297mm;
+    box-sizing: border-box;
+    padding: 14mm 16mm;
+    background: #ffffff;
+    visibility: visible;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  .receipt-print-area * {
+    visibility: visible;
+  }
+  .receipt-print-area table {
+    break-inside: auto;
+  }
+}
