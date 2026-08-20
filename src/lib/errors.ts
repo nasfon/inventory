@@ -51,6 +51,9 @@ const apiErrorMessages: Record<string, string> = {
   overpayment: 'Amount paid cannot exceed the sale total.',
   sale_not_found: 'Sale not found.',
   reason_required: 'A reason is required for this action.',
+  customer_not_found: 'Customer not found.',
+  invalid_amount: 'Enter an amount greater than zero.',
+  exceeds_outstanding: 'Payment cannot exceed the outstanding balance.',
 }
 
 export function getApiErrorMessage(error: unknown): string {

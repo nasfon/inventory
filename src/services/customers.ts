@@ -3,6 +3,7 @@ import type {
   CreateCustomerInput,
   CustomerListParams,
   CustomerListResult,
+  CustomerPurchaseTotals,
   CustomerRecord,
   UpdateCustomerInput,
 } from '../types/customers'
@@ -59,6 +60,36 @@ export async function createCustomer(input: CreateCustomerInput): Promise<void> 
     address: input.address ?? null,
   })
   if (error) throw error
+}
+
+export async function getCustomer(customerId: string): Promise<CustomerRecord | null> {
+  const { data, error } = await supabase
+    .from('customers')
+    .select(customerSelect)
+    .eq('id', customerId)
+    .is('deleted_at', null)
+    .maybeSingle()
+
+  if (error) throw error
+  if (!data) return null
+  return mapCustomerRow(data as Record<string, unknown>)
+}
+
+export async function getCustomerPurchaseTotals(
+  shopId?: string,
+  customerId?: string,
+): Promise<CustomerPurchaseTotals[]> {
+  const { data, error } = await supabase.rpc('customer_purchase_totals', {
+    p_shop_id: shopId ?? null,
+    p_customer_id: customerId ?? null,
+  })
+  if (error) throw error
+
+  return (data ?? []).map((row: Record<string, unknown>) => ({
+    customer_id: row.customer_id as string,
+    purchase_count: Number(row.purchase_count),
+    total_spent: Number(row.total_spent),
+  }))
 }
 
 export async function updateCustomer(input: UpdateCustomerInput): Promise<void> {

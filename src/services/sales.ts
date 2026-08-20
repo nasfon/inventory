@@ -1,14 +1,34 @@
 import { supabase } from '../lib/supabase'
+import type { CustomerSalesParams, CustomerSalesResult } from '../types/customers'
 import type {
   CreateSaleInput,
   PaymentMethod,
   SaleDetail,
   SaleItemRecord,
+  SaleRecord,
   SaleStatus,
 } from '../types/sales'
 
 const saleSelect =
   'id, shop_id, customer_id, cashier_id, receipt_number, subtotal, total, amount_paid, remaining_credit, payment_method, status, created_at, updated_at'
+
+function mapSaleRow(row: Record<string, unknown>): SaleRecord {
+  return {
+    id: row.id as string,
+    shop_id: row.shop_id as string,
+    customer_id: row.customer_id as string | null,
+    cashier_id: row.cashier_id as string,
+    receipt_number: row.receipt_number as string,
+    subtotal: Number(row.subtotal),
+    total: Number(row.total),
+    amount_paid: Number(row.amount_paid),
+    remaining_credit: Number(row.remaining_credit),
+    payment_method: row.payment_method as PaymentMethod,
+    status: row.status as SaleStatus,
+    created_at: row.created_at as string,
+    updated_at: row.updated_at as string,
+  }
+}
 
 export async function createSale(input: CreateSaleInput): Promise<string> {
   const { data, error } = await supabase.rpc('create_sale', {
@@ -48,19 +68,28 @@ export async function getSale(saleId: string): Promise<SaleDetail> {
   }))
 
   return {
-    id: row.id as string,
-    shop_id: row.shop_id as string,
-    customer_id: row.customer_id as string | null,
-    cashier_id: row.cashier_id as string,
-    receipt_number: row.receipt_number as string,
-    subtotal: Number(row.subtotal),
-    total: Number(row.total),
-    amount_paid: Number(row.amount_paid),
-    remaining_credit: Number(row.remaining_credit),
-    payment_method: row.payment_method as PaymentMethod,
-    status: row.status as SaleStatus,
-    created_at: row.created_at as string,
-    updated_at: row.updated_at as string,
+    ...mapSaleRow(row),
     items,
   }
+}
+
+export async function listCustomerSales(
+  customerId: string,
+  params: CustomerSalesParams,
+): Promise<CustomerSalesResult> {
+  const { page, pageSize } = params
+  const from = page * pageSize
+  const to = from + pageSize - 1
+
+  const { data, error, count } = await supabase
+    .from('sales')
+    .select(saleSelect, { count: 'exact' })
+    .eq('customer_id', customerId)
+    .order('created_at', { ascending: false })
+    .range(from, to)
+
+  if (error) throw error
+
+  const rows = (data ?? []).map((row) => mapSaleRow(row as Record<string, unknown>))
+  return { rows, count: count ?? rows.length }
 }

@@ -19,6 +19,7 @@ const ShopsPage = lazy(() => import('../features/shops/ShopsPage'))
 const ProductsPage = lazy(() => import('../features/products/ProductsPage'))
 const CustomersPage = lazy(() => import('../features/customers/CustomersPage'))
 const SalesPage = lazy(() => import('../features/sales/NewSalePage'))
+const CreditBookPage = lazy(() => import('../features/credit/CreditBookPage'))
 
 export type PageKey =
   | 'dashboard'
@@ -67,7 +68,7 @@ export const navItems: NavItem[] = [
     label: 'Credit Book',
     icon: AccountBalanceWallet,
     roles: ['super_admin', 'shop_admin'],
-    placeholder: 'Customer credit tracking and payments are coming soon.',
+    Page: CreditBookPage,
   },
   {
     key: 'expenses',

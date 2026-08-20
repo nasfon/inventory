@@ -50,10 +50,10 @@ Milestone: Inventory module complete.
 ## Phase 3 — Customers & Credit
 
 - [x] Implement customers CRUD
-- [ ] Implement customer search by name/phone
-- [ ] Implement customer profile with purchase history
-- [ ] Implement credit balance tracking
-- [ ] Implement credit payments (record payment, mark fully paid)
+- [x] Implement customer search by name/phone
+- [x] Implement customer profile with purchase history
+- [x] Implement credit balance tracking
+- [x] Implement credit payments (record payment, mark fully paid)
 
 Milestone: Customer and credit modules complete.
 

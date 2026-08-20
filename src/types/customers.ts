@@ -1,3 +1,5 @@
+import type { SaleRecord } from './sales'
+
 export interface CustomerRecord {
   id: string
   shop_id: string
@@ -19,6 +21,22 @@ export interface CustomerListParams {
 
 export interface CustomerListResult {
   rows: CustomerRecord[]
+  count: number
+}
+
+export interface CustomerPurchaseTotals {
+  customer_id: string
+  purchase_count: number
+  total_spent: number
+}
+
+export interface CustomerSalesParams {
+  page: number
+  pageSize: number
+}
+
+export interface CustomerSalesResult {
+  rows: SaleRecord[]
   count: number
 }
 

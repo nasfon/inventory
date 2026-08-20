@@ -1,8 +1,10 @@
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import * as customersService from '../services/customers'
+import * as salesService from '../services/sales'
 import type {
   CreateCustomerInput,
   CustomerListParams,
+  CustomerSalesParams,
   UpdateCustomerInput,
 } from '../types/customers'
 
@@ -11,6 +13,30 @@ export function useCustomersList(params: CustomerListParams) {
     queryKey: ['customers', 'list', params],
     queryFn: () => customersService.listCustomers(params),
     placeholderData: keepPreviousData,
+  })
+}
+
+export function useCustomerProfile(customerId: string | null) {
+  return useQuery({
+    queryKey: ['customers', 'detail', customerId],
+    queryFn: () => customersService.getCustomer(customerId as string),
+    enabled: Boolean(customerId),
+  })
+}
+
+export function useCustomerPurchaseHistory(customerId: string, params: CustomerSalesParams) {
+  return useQuery({
+    queryKey: ['customers', 'purchases', customerId, params],
+    queryFn: () => salesService.listCustomerSales(customerId, params),
+    placeholderData: keepPreviousData,
+  })
+}
+
+export function useCustomerPurchaseTotals(shopId: string, customerId?: string) {
+  return useQuery({
+    queryKey: ['customers', 'purchase-totals', shopId, customerId ?? null],
+    queryFn: () => customersService.getCustomerPurchaseTotals(shopId || undefined, customerId),
+    staleTime: 30_000,
   })
 }
 

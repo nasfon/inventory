@@ -13,6 +13,7 @@ import Add from '@mui/icons-material/Add'
 import DeleteOutlined from '@mui/icons-material/DeleteOutlined'
 import Edit from '@mui/icons-material/Edit'
 import Search from '@mui/icons-material/Search'
+import Visibility from '@mui/icons-material/Visibility'
 import DataTable from '../../components/data/DataTable'
 import { type TableFeatures } from '../../components/data/table'
 import PageHeader from '../../components/ui/PageHeader'
@@ -24,11 +25,13 @@ import { useShops } from '../../hooks/useShops'
 import {
   useCreateCustomer,
   useCustomersList,
+  useCustomerPurchaseTotals,
   useDeleteCustomer,
   useUpdateCustomer,
 } from '../../hooks/useCustomers'
 import type { CustomerRecord } from '../../types/customers'
 import CustomerFormDialog from './CustomerFormDialog'
+import CustomerProfileDialog from './CustomerProfileDialog'
 import {
   type CreateCustomerFormValues,
   type EditCustomerFormValues,
@@ -48,6 +51,7 @@ export default function CustomersPage() {
   const [shopFilter, setShopFilter] = useState('')
   const [dialog, setDialog] = useState<DialogState | null>(null)
   const [confirm, setConfirm] = useState<ConfirmState>(null)
+  const [customerProfile, setCustomerProfile] = useState<CustomerRecord | null>(null)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
 
@@ -67,6 +71,11 @@ export default function CustomersPage() {
   const updateCustomer = useUpdateCustomer()
   const deleteCustomer = useDeleteCustomer()
   const shopName = (shopId: string) => shops.find((shop) => shop.id === shopId)?.name ?? '—'
+
+  const purchaseTotalsQuery = useCustomerPurchaseTotals(isSuperAdmin ? shopFilter : defaultShopId)
+  const purchaseTotals = new Map(
+    (purchaseTotalsQuery.data ?? []).map((total) => [total.customer_id, total]),
+  )
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -166,6 +175,21 @@ export default function CustomersPage() {
       cell: (info) => <Typography variant="body2">{info.getValue<string>()}</Typography>,
     },
     {
+      id: 'total_purchases',
+      header: 'Total Purchases',
+      cell: (info) => {
+        const total = purchaseTotals.get(info.row.original.id)
+        return (
+          <Stack>
+            <Typography variant="body2">{total ? total.purchase_count : 0} purchases</Typography>
+            <Typography variant="caption" color="text.secondary">
+              {formatCurrency(total ? total.total_spent : 0)}
+            </Typography>
+          </Stack>
+        )
+      },
+    },
+    {
       accessorKey: 'total_credit',
       header: 'Outstanding Credit',
       cell: (info) => (
@@ -174,30 +198,35 @@ export default function CustomersPage() {
     },
   )
 
-  if (isAdmin) {
-    columns.push({
-      id: 'actions',
-      header: 'Actions',
-      cell: (info) => {
-        const row = info.row.original
-        return (
-          <Stack direction="row" spacing={0.5}>
-            <Button size="small" startIcon={<Edit />} onClick={() => setDialog({ type: 'edit', customer: row })}>
-              Edit
-            </Button>
-            <Button
-              size="small"
-              color="error"
-              startIcon={<DeleteOutlined />}
-              onClick={() => setConfirm({ customer: row })}
-            >
-              Delete
-            </Button>
-          </Stack>
-        )
-      },
-    })
-  }
+  columns.push({
+    id: 'actions',
+    header: 'Actions',
+    cell: (info) => {
+      const row = info.row.original
+      return (
+        <Stack direction="row" spacing={0.5}>
+          <Button size="small" startIcon={<Visibility />} onClick={() => setCustomerProfile(row)}>
+            View
+          </Button>
+          {isAdmin && (
+            <>
+              <Button size="small" startIcon={<Edit />} onClick={() => setDialog({ type: 'edit', customer: row })}>
+                Edit
+              </Button>
+              <Button
+                size="small"
+                color="error"
+                startIcon={<DeleteOutlined />}
+                onClick={() => setConfirm({ customer: row })}
+              >
+                Delete
+              </Button>
+            </>
+          )}
+        </Stack>
+      )
+    },
+  })
 
   return (
     <Box>
@@ -291,6 +320,22 @@ export default function CustomersPage() {
         onConfirm={() => confirm && handleDelete(confirm)}
         onCancel={() => setConfirm(null)}
       />
+
+      {customerProfile && (
+        <CustomerProfileDialog
+          customer={customerProfile}
+          shopName={shopName(customerProfile.shop_id)}
+          onClose={() => setCustomerProfile(null)}
+          onEdit={
+            isAdmin
+              ? () => {
+                  setDialog({ type: 'edit', customer: customerProfile })
+                  setCustomerProfile(null)
+                }
+              : undefined
+          }
+        />
+      )}
     </Box>
   )
 }
