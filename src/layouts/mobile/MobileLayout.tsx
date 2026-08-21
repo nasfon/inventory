@@ -1,0 +1,220 @@
+import { Suspense, useCallback, useMemo, useRef, useState, type TouchEvent } from 'react'
+import Box from '@mui/material/Box'
+import Typography from '@mui/material/Typography'
+import CircularProgress from '@mui/material/CircularProgress'
+import Dashboard from '@mui/icons-material/Dashboard'
+import Inventory2 from '@mui/icons-material/Inventory2'
+import People from '@mui/icons-material/People'
+import PointOfSale from '@mui/icons-material/PointOfSale'
+import MoreHoriz from '@mui/icons-material/MoreHoriz'
+import Loading from '../../components/feedback/Loading'
+import { useAuth } from '../../hooks/useAuth'
+import { getNavItems, type PageKey } from '../navigation'
+import MobileTopBar from './MobileTopBar'
+import BottomTabBar, { BAR_HEIGHT, type BottomTab } from './BottomTabBar'
+import MoreSheet from './MoreSheet'
+import { MobileNavContext } from './mobileNav'
+
+const PRIMARY_TABS = ['dashboard', 'products', 'sales', 'customers'] as const
+const MODAL_KEYS: PageKey[] = ['sales']
+
+const bottomTabs: BottomTab[] = [
+  { key: 'dashboard', label: 'Home', icon: Dashboard },
+  { key: 'products', label: 'Products', icon: Inventory2 },
+  { key: 'sales', label: 'New Sale', icon: PointOfSale, center: true },
+  { key: 'customers', label: 'Customers', icon: People },
+  { key: 'more', label: 'More', icon: MoreHoriz, more: true },
+]
+
+export default function MobileLayout() {
+  const { profile, logout } = useAuth()
+  const [stack, setStack] = useState<PageKey[]>(['dashboard'])
+  const [moreOpen, setMoreOpen] = useState(false)
+  const [titleOverride, setTitleOverride] = useState<string | null>(null)
+  const [showBackOverride, setShowBackOverride] = useState(false)
+  const [refreshFn, setRefreshFn] = useState<(() => unknown) | null>(null)
+  const [pull, setPull] = useState(0)
+  const [refreshing, setRefreshing] = useState(false)
+  const [signingOut, setSigningOut] = useState(false)
+
+  const touchStart = useRef<{ x: number; y: number } | null>(null)
+  const gesture = useRef<{ dx: number; dy: number }>({ dx: 0, dy: 0 })
+
+  const items = useMemo(() => getNavItems(profile?.role), [profile?.role])
+  const itemMap = useMemo(() => new Map(items.map((item) => [item.key, item])), [items])
+
+  const topKey = stack[stack.length - 1]
+  const topIsModal = MODAL_KEYS.includes(topKey)
+  const visibleItem = itemMap.get(topKey) ?? items[0]
+  const showBottomBar = !topIsModal
+  const title = titleOverride ?? visibleItem?.label ?? 'IMS'
+  const backVisible = stack.length > 1 || showBackOverride
+
+  const pop = () => {
+    setPull(0)
+    setStack((prev) => (prev.length > 1 ? prev.slice(0, -1) : prev))
+  }
+
+  const navigate = useCallback((key: string) => {
+    setPull(0)
+    setRefreshing(false)
+    if (key === 'more') {
+      setMoreOpen(true)
+      return
+    }
+    if (MODAL_KEYS.includes(key as PageKey)) {
+      setStack((prev) => [...prev, key as PageKey])
+      return
+    }
+    if (PRIMARY_TABS.includes(key as (typeof PRIMARY_TABS)[number])) {
+      setStack([key as PageKey])
+      return
+    }
+    setStack((prev) => [...prev, key as PageKey])
+  }, [])
+
+  const handleLogout = async () => {
+    setSigningOut(true)
+    try {
+      await logout()
+    } finally {
+      setSigningOut(false)
+    }
+  }
+
+  const doRefresh = async () => {
+    if (refreshing) return
+    setRefreshing(true)
+    try {
+      await refreshFn?.()
+    } finally {
+      setRefreshing(false)
+      setPull(0)
+    }
+  }
+
+  const onTouchStart = (event: TouchEvent) => {
+    if (window.scrollY > 0 || refreshing) {
+      touchStart.current = null
+      return
+    }
+    touchStart.current = { x: event.touches[0].clientX, y: event.touches[0].clientY }
+    gesture.current = { dx: 0, dy: 0 }
+  }
+
+  const onTouchMove = (event: TouchEvent) => {
+    if (!touchStart.current) return
+    const dx = event.touches[0].clientX - touchStart.current.x
+    const dy = event.touches[0].clientY - touchStart.current.y
+    gesture.current = { dx, dy }
+    if (dy > 0 && Math.abs(dy) > Math.abs(dx) && pull < 80) {
+      setPull(Math.min(dy * 0.5, 80))
+    }
+  }
+
+  const onTouchEnd = () => {
+    if (!touchStart.current) return
+    const { dx, dy } = gesture.current
+    if (dy > 60) {
+      void doRefresh()
+    } else if (touchStart.current.x < 40 && dx > 70 && Math.abs(dx) > Math.abs(dy) && stack.length > 1) {
+      pop()
+    }
+    touchStart.current = null
+    if (pull > 0 && dy <= 60) setPull(0)
+  }
+
+  const navValue = useMemo(
+    () => ({
+      setTitle: (value: string | null) => setTitleOverride(value),
+      setShowBack: (value: boolean) => setShowBackOverride(value),
+      setRefresh: (value: (() => unknown) | null) => setRefreshFn(value),
+    }),
+    [],
+  )
+
+  return (
+    <MobileNavContext.Provider value={navValue}>
+      <Box
+        sx={{
+          minHeight: '100vh',
+          bgcolor: 'background.default',
+          pb: showBottomBar ? `calc(${BAR_HEIGHT}px + env(safe-area-inset-bottom) + 16px)` : 'env(safe-area-inset-bottom)',
+        }}
+      >
+        <MobileTopBar
+          title={title}
+          showBack={backVisible}
+          onBack={pop}
+          profile={profile}
+          signingOut={signingOut}
+          onLogout={handleLogout}
+        />
+
+        <Box
+          component="main"
+          onTouchStart={onTouchStart}
+          onTouchMove={onTouchMove}
+          onTouchEnd={onTouchEnd}
+          sx={{
+            px: 2,
+            pt: `calc(56px + env(safe-area-inset-top) + 12px)`,
+            transform: pull > 0 ? `translateY(${pull}px)` : undefined,
+            transition: refreshing ? 'transform 200ms ease' : undefined,
+          }}
+        >
+          {(pull > 0 || refreshing) && (
+            <Box
+              sx={{
+                position: 'fixed',
+                top: `calc(56px + env(safe-area-inset-top) + 12px)`,
+                left: '50%',
+                transform: 'translateX(-50%)',
+                zIndex: (theme) => theme.zIndex.appBar - 1,
+                opacity: Math.min(pull / 60, 1),
+                pointerEvents: 'none',
+              }}
+            >
+              <CircularProgress size={Math.max(20, Math.min(pull, 36))} />
+            </Box>
+          )}
+
+          {visibleItem?.Page ? (
+            <Box
+              key={topKey}
+              className={topIsModal ? 'mobile-slide-up' : 'mobile-slide-right'}
+            >
+              <Suspense fallback={<Loading />}>
+                <visibleItem.Page onNavigate={navigate} />
+              </Suspense>
+            </Box>
+          ) : (
+            <Box sx={{ p: 2 }}>
+              <Typography color="text.secondary">{visibleItem?.placeholder ?? 'Coming soon.'}</Typography>
+            </Box>
+          )}
+        </Box>
+
+        {showBottomBar && (
+          <BottomTabBar
+            tabs={bottomTabs}
+            activeKey={topKey}
+            moreActive={!PRIMARY_TABS.includes(topKey as (typeof PRIMARY_TABS)[number])}
+            onSelect={(key) => navigate(key as PageKey)}
+          />
+        )}
+
+        <MoreSheet
+          open={moreOpen}
+          onClose={() => setMoreOpen(false)}
+          items={items.filter((item) => !PRIMARY_TABS.includes(item.key as (typeof PRIMARY_TABS)[number]))}
+          activeKey={topKey}
+          onSelect={(key) => {
+            navigate(key)
+            setMoreOpen(false)
+          }}
+        />
+      </Box>
+    </MobileNavContext.Provider>
+  )
+}

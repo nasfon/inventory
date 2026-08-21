@@ -106,3 +106,58 @@ Milestone: Code complete and tested.
 - [ ] Monitor post-launch
 
 Milestone: MVP launched.
+
+---
+
+## Phase 8 — Mobile View (Native-App Experience)
+
+Spec reference: `docs/Mobile UI Specification.md`
+
+### Foundation & Shell
+- [x] Define mobile design tokens (touch targets, safe-area insets, radii, elevation) reusing MUI theme + Tailwind CSS vars
+- [x] Build mobile app shell: Top App Bar (contextual) + Bottom Tab Bar + safe-area padding
+- [x] Implement bottom tab navigation with role-based item set (Dashboard, Products, Sales, Customers, More)
+- [ ] Implement FAB / Extended FAB per screen (New Sale, Add Product, Add Customer, Record Expense)
+- [x] Wire mobile navigation patterns (stack push, bottom sheet, full-screen modal, swipe, pull-to-refresh)
+- [ ] Add platform adaptation layer (iOS HIG vs Android M3 cues) via single codebase
+- [x] Route-level code splitting (`React.lazy` + `Suspense`) for every mobile screen
+
+### Screens
+- [ ] Login (full-screen, inline errors, optional biometric slot)
+- [ ] Dashboard (2-col stat grid, low-stock chips, recent sales, quick actions, pull-to-refresh)
+- [ ] Products (inline search, filter chips, swipe actions, infinite scroll, Add/Edit sheet)
+- [ ] Customers (search, list, detail tabs, Record Payment sheet)
+- [ ] Sales (History tab + New Sale full-screen flow: customer → items → summary/pay → confirm)
+- [ ] Receipt (mobile ticket, Print / Save PNG / Download PDF)
+- [ ] Credit Book (list, history, Record Payment, Mark Fully Paid)
+- [ ] Expenses (list, Record Expense sheet)
+- [ ] Reports (cards, shop/date-range filter sheet, Print/PDF)
+- [ ] Audit Logs (filterable list, role-restricted)
+- [ ] Shops (Super Admin list + Add/Edit/Disable)
+- [ ] Users (list + Add/Edit/Activate/Deactivate)
+- [ ] Business Settings (info, logo, contact, receipt footer)
+
+### Reusable Mobile Components
+- [ ] AppBar, BottomTabBar, FAB, BottomSheet, FullScreenModal
+- [ ] ListRow (48dp, swipe actions), StatCard, FilterChip/SegmentedControl
+- [ ] SearchBar (inline expandable), Stepper (± quantity)
+- [ ] EmptyState, SkeletonList, Toast, ConfirmDialog, Badge
+
+### Forms & Feedback
+- [ ] Migrate forms to mobile surfaces (React Hook Form + Zod, inline errors, duplicate-submit guard)
+- [ ] Toast notifications (success/warning/error) with platform slide direction
+- [ ] Haptic-style tap feedback, pull-to-refresh, skeletons/spinners
+
+### Accessibility & Performance
+- [ ] Safe-area insets on all edges; dynamic Type / system font scaling to 200%
+- [ ] WCAG AA contrast, focus states, `prefers-reduced-motion`
+- [ ] Debounced search (300ms), server-side pagination / infinite scroll, explicit column selection
+- [ ] Virtualize lists >100 rows (`@tanstack/react-virtual`)
+- [ ] Prefetch Products/Customers for New Sale during idle
+
+### Verification
+- [ ] `npm run build` and `npm run lint` pass on mobile changes
+- [ ] Manual test on small/standard/large phone widths (Android + iOS emulation)
+- [ ] Verify role-based mobile nav and restricted actions
+
+Milestone: IMS usable as a native-feeling mobile app on Android and iOS.

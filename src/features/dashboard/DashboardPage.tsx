@@ -1,4 +1,4 @@
-import { useState, type ComponentType } from 'react'
+import { useCallback, useEffect, useState, type ComponentType } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import type { SvgIconProps } from '@mui/material/SvgIcon'
 import AccountBalanceWallet from '@mui/icons-material/AccountBalanceWallet'
@@ -34,6 +34,7 @@ import { useCreateExpense } from '../../hooks/useExpenses'
 import { getApiErrorMessage } from '../../lib/errors'
 import { formatCurrency, formatTime } from '../../lib/utils'
 import type { PageKey } from '../../layouts/navigation'
+import { useMobileNav } from '../../layouts/mobile/mobileNav'
 import type { SaleStatus } from '../../types/sales'
 import ProductFormDialog from '../products/ProductFormDialog'
 import type { CreateProductFormValues, EditProductFormValues } from '../products/productsSchema'
@@ -115,10 +116,16 @@ export default function DashboardPage({ onNavigate }: DashboardPageProps = {}) {
   const createProduct = useCreateProduct()
   const createCustomer = useCreateCustomer()
   const createExpense = useCreateExpense()
+  const mobileNav = useMobileNav()
 
-  const refreshDashboard = () => {
+  const refreshDashboard = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ['dashboard'] })
-  }
+  }, [queryClient])
+
+  useEffect(() => {
+    mobileNav.setRefresh(() => refreshDashboard())
+    return () => mobileNav.setRefresh(null)
+  }, [mobileNav, refreshDashboard])
 
   const closeDialog = () => {
     setDialog(null)

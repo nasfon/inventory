@@ -57,6 +57,34 @@ body {
   display: none;
 }
 
+@keyframes mobileSlideInRight {
+  from {
+    transform: translateX(24px);
+    opacity: 0;
+  }
+  to {
+    transform: none;
+    opacity: 1;
+  }
+}
+
+@keyframes mobileSlideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: none;
+  }
+}
+
+.mobile-slide-right {
+  animation: mobileSlideInRight 220ms ease both;
+}
+
+.mobile-slide-up {
+  animation: mobileSlideUp 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 @page {
   size: A4;
   margin: 0;

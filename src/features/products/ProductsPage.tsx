@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useMobileNav } from '../../layouts/mobile/mobileNav'
 import type { ColumnDef, PaginationState } from '@tanstack/react-table'
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
@@ -74,19 +75,26 @@ export default function ProductsPage() {
   const isAdmin = permissions.canManageProducts
   const defaultShopId = isSuperAdmin ? '' : (profile?.shop_id ?? '')
 
-  const { data, isLoading } = useProductsList({
+  const productsQuery = useProductsList({
     page: pagination.pageIndex,
     pageSize: pagination.pageSize,
     search,
     status: statusFilter,
     shopId: isSuperAdmin ? shopFilter : defaultShopId,
   })
+  const { data, isLoading, refetch: refetchProducts } = productsQuery
   const shopsQuery = useShops()
   const shops = shopsQuery.data ?? []
   const createProduct = useCreateProduct()
   const updateProduct = useUpdateProduct()
   const deleteProduct = useDeleteProduct()
   const shopName = (shopId: string) => shops.find((shop) => shop.id === shopId)?.name ?? '—'
+  const mobileNav = useMobileNav()
+
+  useEffect(() => {
+    mobileNav.setRefresh(() => refetchProducts())
+    return () => mobileNav.setRefresh(null)
+  }, [mobileNav, refetchProducts])
 
   useEffect(() => {
     const timer = setTimeout(() => {

@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useMobileNav } from '../../layouts/mobile/mobileNav'
 import type { ColumnDef, PaginationState } from '@tanstack/react-table'
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
@@ -56,17 +57,24 @@ export default function CustomersPage() {
   const [customerProfile, setCustomerProfile] = useState<CustomerRecord | null>(null)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
+  const mobileNav = useMobileNav()
 
   const isSuperAdmin = permissions.isSuperAdmin
   const isAdmin = permissions.canManageCustomers
   const defaultShopId = isSuperAdmin ? '' : (profile?.shop_id ?? '')
 
-  const { data, isLoading } = useCustomersList({
+  const customersQuery = useCustomersList({
     page: pagination.pageIndex,
     pageSize: pagination.pageSize,
     search,
     shopId: isSuperAdmin ? shopFilter : defaultShopId,
   })
+  const { data, isLoading, refetch: refetchCustomers } = customersQuery
+
+  useEffect(() => {
+    mobileNav.setRefresh(() => refetchCustomers())
+    return () => mobileNav.setRefresh(null)
+  }, [mobileNav, refetchCustomers])
   const shopsQuery = useShops()
   const shops = shopsQuery.data ?? []
   const createCustomer = useCreateCustomer()

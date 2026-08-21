@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useMobileNav } from '../../layouts/mobile/mobileNav'
 import type { ColumnDef, PaginationState } from '@tanstack/react-table'
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
@@ -41,7 +42,7 @@ export default function ExpensesPage() {
 
   const shopsQuery = useShops()
   const shops = shopsQuery.data ?? []
-  const { data, isLoading } = useExpensesList({
+  const expensesQuery = useExpensesList({
     page: pagination.pageIndex,
     pageSize: pagination.pageSize,
     search,
@@ -49,7 +50,14 @@ export default function ExpensesPage() {
     fromDate: fromDate || undefined,
     toDate: toDate || undefined,
   })
+  const { data, isLoading, refetch: refetchExpenses } = expensesQuery
   const createExpense = useCreateExpense()
+  const mobileNav = useMobileNav()
+
+  useEffect(() => {
+    mobileNav.setRefresh(() => refetchExpenses())
+    return () => mobileNav.setRefresh(null)
+  }, [mobileNav, refetchExpenses])
 
   useEffect(() => {
     const timer = setTimeout(() => {
