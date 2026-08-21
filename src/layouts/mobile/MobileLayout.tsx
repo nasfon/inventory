@@ -126,6 +126,7 @@ export default function MobileLayout() {
 
   const navValue = useMemo(
     () => ({
+      isMobile: true,
       setTitle: (value: string | null) => setTitleOverride(value),
       setShowBack: (value: boolean) => setShowBackOverride(value),
       setRefresh: (value: (() => unknown) | null) => setRefreshFn(value),

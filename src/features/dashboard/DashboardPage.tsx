@@ -290,49 +290,51 @@ export default function DashboardPage({ onNavigate }: DashboardPageProps = {}) {
           </TableContainer>
         </Paper>
 
-        <Paper variant="outlined" sx={{ width: { lg: 260 }, alignSelf: 'flex-start' }}>
-          <Typography variant="h6" sx={{ fontWeight: 600, p: 2 }}>
-            Quick Actions
-          </Typography>
-          <Stack spacing={1} sx={{ p: 2, pt: 0 }}>
-            <Button
-              variant="outlined"
-              color="primary"
-              startIcon={<PointOfSale fontSize="small" />}
-              sx={{ justifyContent: 'flex-start' }}
-              onClick={() => onNavigate?.('sales')}
-            >
-              New Sale
-            </Button>
-            <Button
-              variant="outlined"
-              color="primary"
-              startIcon={<Inventory2 fontSize="small" />}
-              sx={{ justifyContent: 'flex-start' }}
-              onClick={() => setDialog({ type: 'product' })}
-            >
-              Add Product
-            </Button>
-            <Button
-              variant="outlined"
-              color="primary"
-              startIcon={<People fontSize="small" />}
-              sx={{ justifyContent: 'flex-start' }}
-              onClick={() => setDialog({ type: 'customer' })}
-            >
-              Add Customer
-            </Button>
-            <Button
-              variant="outlined"
-              color="primary"
-              startIcon={<Payments fontSize="small" />}
-              sx={{ justifyContent: 'flex-start' }}
-              onClick={() => setDialog({ type: 'expense' })}
-            >
-              Record Expense
-            </Button>
-          </Stack>
-        </Paper>
+        {!mobileNav.isMobile && (
+          <Paper variant="outlined" sx={{ width: { lg: 260 }, alignSelf: 'flex-start' }}>
+            <Typography variant="h6" sx={{ fontWeight: 600, p: 2 }}>
+              Quick Actions
+            </Typography>
+            <Stack spacing={1} sx={{ p: 2, pt: 0 }}>
+              <Button
+                variant="outlined"
+                color="primary"
+                startIcon={<PointOfSale fontSize="small" />}
+                sx={{ justifyContent: 'flex-start' }}
+                onClick={() => onNavigate?.('sales')}
+              >
+                New Sale
+              </Button>
+              <Button
+                variant="outlined"
+                color="primary"
+                startIcon={<Inventory2 fontSize="small" />}
+                sx={{ justifyContent: 'flex-start' }}
+                onClick={() => setDialog({ type: 'product' })}
+              >
+                Add Product
+              </Button>
+              <Button
+                variant="outlined"
+                color="primary"
+                startIcon={<People fontSize="small" />}
+                sx={{ justifyContent: 'flex-start' }}
+                onClick={() => setDialog({ type: 'customer' })}
+              >
+                Add Customer
+              </Button>
+              <Button
+                variant="outlined"
+                color="primary"
+                startIcon={<Payments fontSize="small" />}
+                sx={{ justifyContent: 'flex-start' }}
+                onClick={() => setDialog({ type: 'expense' })}
+              >
+                Record Expense
+              </Button>
+            </Stack>
+          </Paper>
+        )}
       </Stack>
 
       {submitError && (

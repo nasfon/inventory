@@ -1,6 +1,7 @@
 import { createContext, useContext } from 'react'
 
 export interface MobileNavValue {
+  isMobile: boolean
   setTitle: (title: string | null) => void
   setShowBack: (show: boolean) => void
   setRefresh: (refresh: (() => unknown) | null) => void
@@ -9,6 +10,7 @@ export interface MobileNavValue {
 const noop = () => {}
 
 const defaultValue: MobileNavValue = {
+  isMobile: false,
   setTitle: noop,
   setShowBack: noop,
   setRefresh: noop,
