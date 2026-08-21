@@ -13,6 +13,8 @@ import ReceiptLong from '@mui/icons-material/ReceiptLong'
 import Settings from '@mui/icons-material/Settings'
 import Store from '@mui/icons-material/Store'
 import type { RoleName } from '../types/auth'
+import type { Permission } from '../lib/permissions'
+import { can } from '../lib/permissions'
 
 const DashboardPage = lazy(() => import('../features/dashboard/DashboardPage'))
 const UsersPage = lazy(() => import('../features/users/UsersPage'))
@@ -43,7 +45,7 @@ export interface NavItem {
   key: PageKey
   label: string
   icon: ComponentType<SvgIconProps>
-  roles?: RoleName[]
+  permission?: Permission
   Page?: ComponentType<{ onNavigate?: (key: PageKey) => void }>
   placeholder?: string
 }
@@ -78,50 +80,50 @@ export const navItems: NavItem[] = [
     key: 'credit-book',
     label: 'Credit Book',
     icon: AccountBalanceWallet,
-    roles: ['super_admin', 'shop_admin'],
+    permission: 'credit.read',
     Page: CreditBookPage,
   },
   {
     key: 'expenses',
     label: 'Expenses',
     icon: Payments,
-    roles: ['super_admin', 'shop_admin'],
+    permission: 'expenses.create',
     Page: ExpensesPage,
   },
   {
     key: 'reports',
     label: 'Reports',
     icon: Assessment,
-    roles: ['super_admin', 'shop_admin'],
+    permission: 'reports.view',
     placeholder: 'Sales, revenue, expenses, credit, and inventory reports are coming soon.',
   },
   {
     key: 'audit-logs',
     label: 'Audit Logs',
     icon: History,
-    roles: ['super_admin', 'shop_admin'],
+    permission: 'audit_logs.view',
     Page: AuditLogsPage,
   },
   {
     key: 'shops',
     label: 'Shops',
     icon: Store,
-    roles: ['super_admin'],
+    permission: 'shops.manage',
     Page: ShopsPage,
   },
-  { key: 'users', label: 'Users', icon: Group, roles: ['super_admin', 'shop_admin'], Page: UsersPage },
+  { key: 'users', label: 'Users', icon: Group, permission: 'users.manage', Page: UsersPage },
   {
     key: 'settings',
     label: 'Settings',
     icon: Settings,
-    roles: ['super_admin'],
+    permission: 'settings.manage',
     placeholder: 'Business settings are coming soon.',
   },
 ]
 
 export function getNavItems(role?: RoleName | null): NavItem[] {
   if (!role) {
-    return navItems.filter((item) => !item.roles)
+    return navItems.filter((item) => !item.permission)
   }
-  return navItems.filter((item) => !item.roles || item.roles.includes(role))
+  return navItems.filter((item) => !item.permission || can(role, item.permission))
 }

@@ -20,7 +20,7 @@ import PageHeader from '../../components/ui/PageHeader'
 import StatusBadge from '../../components/ui/StatusBadge'
 import ConfirmationDialog from '../../components/ui/ConfirmationDialog'
 import { getApiErrorMessage } from '../../lib/errors'
-import { useAuth } from '../../hooks/useAuth'
+import { usePermissions } from '../../hooks/usePermissions'
 import { useCreateShop, useShopsList, useUpdateShop } from '../../hooks/useShops'
 import type { ShopRecord, ShopStatusFilter } from '../../types/shops'
 import ShopFormDialog from './ShopFormDialog'
@@ -36,7 +36,7 @@ type DialogState =
 type ConfirmState = { shop: ShopRecord; action: 'activate' | 'deactivate' } | null
 
 export default function ShopsPage() {
-  const { profile } = useAuth()
+  const permissions = usePermissions()
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
@@ -63,7 +63,7 @@ export default function ShopsPage() {
     return () => clearTimeout(timer)
   }, [searchInput])
 
-  if (profile?.role !== 'super_admin') {
+  if (!permissions.canManageShops) {
     return (
       <Box>
         <PageHeader title="Shops" />

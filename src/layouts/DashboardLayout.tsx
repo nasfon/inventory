@@ -44,7 +44,9 @@ export default function DashboardLayout() {
   const [retrying, setRetrying] = useState(false)
 
   const items = getNavItems(profile?.role)
-  const activeItem = items.find((item) => item.key === activeKey) ?? items[0]
+  const activeKeyIsAllowed = items.some((item) => item.key === activeKey)
+  const effectiveActiveKey = activeKeyIsAllowed ? activeKey : 'dashboard'
+  const activeItem = items.find((item) => item.key === effectiveActiveKey) ?? items[0]
   const drawerWidth = collapsed ? 72 : mobileDrawerWidth
   const roleColor =
     profile?.role === 'super_admin' ? 'error' : profile?.role === 'shop_admin' ? 'primary' : 'secondary'
@@ -190,7 +192,7 @@ export default function DashboardLayout() {
         >
           <SidebarContent
             items={items}
-            activeKey={activeKey}
+            activeKey={effectiveActiveKey}
             collapsed={false}
             onNavigate={(key) => {
               setActiveKey(key)
@@ -210,7 +212,7 @@ export default function DashboardLayout() {
         >
           <SidebarContent
             items={items}
-            activeKey={activeKey}
+            activeKey={effectiveActiveKey}
             collapsed={collapsed}
             onNavigate={setActiveKey}
             onLogout={handleLogout}

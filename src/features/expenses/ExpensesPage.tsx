@@ -17,6 +17,7 @@ import PageHeader from '../../components/ui/PageHeader'
 import { getApiErrorMessage } from '../../lib/errors'
 import { formatCurrency } from '../../lib/utils'
 import { useAuth } from '../../hooks/useAuth'
+import { usePermissions } from '../../hooks/usePermissions'
 import { useExpensesList, useCreateExpense } from '../../hooks/useExpenses'
 import { useShops } from '../../hooks/useShops'
 import type { ExpenseRecord } from '../../types/expenses'
@@ -25,6 +26,7 @@ import type { CreateExpenseFormValues } from './expensesSchema'
 
 export default function ExpensesPage() {
   const { profile } = useAuth()
+  const permissions = usePermissions()
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
@@ -34,7 +36,7 @@ export default function ExpensesPage() {
   const [formOpen, setFormOpen] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
 
-  const isSuperAdmin = profile?.role === 'super_admin'
+  const isSuperAdmin = permissions.isSuperAdmin
   const defaultShopId = isSuperAdmin ? '' : (profile?.shop_id ?? '')
 
   const shopsQuery = useShops()
@@ -122,9 +124,11 @@ export default function ExpensesPage() {
         title="Expenses"
         subtitle="Track business expenses across your shop"
         actions={
-          <Button variant="contained" startIcon={<Add />} onClick={() => setFormOpen(true)}>
-            Record Expense
-          </Button>
+          permissions.canManageExpenses ? (
+            <Button variant="contained" startIcon={<Add />} onClick={() => setFormOpen(true)}>
+              Record Expense
+            </Button>
+          ) : undefined
         }
       />
 

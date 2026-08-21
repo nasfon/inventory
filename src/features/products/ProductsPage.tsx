@@ -23,6 +23,7 @@ import ConfirmationDialog from '../../components/ui/ConfirmationDialog'
 import { getApiErrorMessage } from '../../lib/errors'
 import { formatCurrency } from '../../lib/utils'
 import { useAuth } from '../../hooks/useAuth'
+import { usePermissions } from '../../hooks/usePermissions'
 import { useShops } from '../../hooks/useShops'
 import {
   useCreateProduct,
@@ -58,6 +59,7 @@ function getProductErrorMessage(error: unknown): string {
 
 export default function ProductsPage() {
   const { profile } = useAuth()
+  const permissions = usePermissions()
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
@@ -68,8 +70,8 @@ export default function ProductsPage() {
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
 
-  const isSuperAdmin = profile?.role === 'super_admin'
-  const isAdmin = isSuperAdmin || profile?.role === 'shop_admin'
+  const isSuperAdmin = permissions.isSuperAdmin
+  const isAdmin = permissions.canManageProducts
   const defaultShopId = isSuperAdmin ? '' : (profile?.shop_id ?? '')
 
   const { data, isLoading } = useProductsList({

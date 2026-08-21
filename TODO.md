@@ -77,7 +77,7 @@ Milestone: Core operational modules complete.
 - [x] Implement dashboard statistics and widgets
 - [ ] Implement reports (sales, revenue, expenses, credit, inventory)
 - [ ] Implement business settings
-- [ ] Implement role-based UI visibility
+- [x] Implement role-based UI visibility
 
 Milestone: All MVP modules complete.
 

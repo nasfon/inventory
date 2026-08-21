@@ -12,6 +12,7 @@ import Typography from '@mui/material/Typography'
 import Add from '@mui/icons-material/Add'
 import Block from '@mui/icons-material/Block'
 import CheckCircle from '@mui/icons-material/CheckCircle'
+import Delete from '@mui/icons-material/Delete'
 import Edit from '@mui/icons-material/Edit'
 import Key from '@mui/icons-material/Key'
 import PersonAddAlt1 from '@mui/icons-material/PersonAddAlt1'
@@ -23,8 +24,10 @@ import StatusBadge from '../../components/ui/StatusBadge'
 import ConfirmationDialog from '../../components/ui/ConfirmationDialog'
 import { getApiErrorMessage } from '../../lib/errors'
 import { useAuth } from '../../hooks/useAuth'
+import { usePermissions } from '../../hooks/usePermissions'
 import {
   useCreateUser,
+  useDeleteUser,
   useOnboardUser,
   useResetPassword,
   useRoles,
@@ -57,10 +60,11 @@ type DialogState =
   | { type: 'onboard' }
   | { type: 'reset'; user: UserRecord }
 
-type ConfirmState = { user: UserRecord; action: 'activate' | 'deactivate' } | null
+type ConfirmState = { user: UserRecord; action: 'activate' | 'deactivate' | 'delete' } | null
 
 export default function UsersPage() {
-  const { profile } = useAuth()
+  const permissions = usePermissions()
+  const { user } = useAuth()
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
@@ -83,12 +87,16 @@ export default function UsersPage() {
   const updateUser = useUpdateUser()
   const onboardUser = useOnboardUser()
   const resetPassword = useResetPassword()
+  const deleteUser = useDeleteUser()
 
-  const isSuperAdmin = profile?.role === 'super_admin'
-  const isAdmin = isSuperAdmin || profile?.role === 'shop_admin'
-  const assignableRoles = (rolesQuery.data ?? []).filter(
-    (roleOption) => isSuperAdmin || roleOption.name !== 'super_admin',
-  )
+  const isSuperAdmin = permissions.isSuperAdmin
+  const isAdmin = permissions.isAdmin
+  const currentUserId = user?.id
+  const assignableRoles = (rolesQuery.data ?? []).filter((roleOption) => {
+    if (roleOption.name === 'super_admin') return false
+    if (!isSuperAdmin && roleOption.name === 'shop_admin') return false
+    return true
+  })
   const shops = shopsQuery.data ?? []
   const shopName = (shopId: string | null) => shops.find((shop) => shop.id === shopId)?.name ?? '—'
 
@@ -184,17 +192,21 @@ export default function UsersPage() {
     }
   }
 
-  const handleToggleActive = async (target: NonNullable<ConfirmState>) => {
+  const handleConfirmAction = async (target: NonNullable<ConfirmState>) => {
     setActionError(null)
     try {
-      await updateUser.mutateAsync({
-        user_id: target.user.id,
-        full_name: target.user.full_name,
-        phone: target.user.phone ?? undefined,
-        role: target.user.role,
-        shop_id: target.user.shop_id,
-        is_active: target.action === 'activate',
-      })
+      if (target.action === 'delete') {
+        await deleteUser.mutateAsync(target.user.id)
+      } else {
+        await updateUser.mutateAsync({
+          user_id: target.user.id,
+          full_name: target.user.full_name,
+          phone: target.user.phone ?? undefined,
+          role: target.user.role,
+          shop_id: target.user.shop_id,
+          is_active: target.action === 'activate',
+        })
+      }
       setConfirm(null)
     } catch (error) {
       setActionError(getApiErrorMessage(error))
@@ -241,6 +253,7 @@ export default function UsersPage() {
       header: 'Actions',
       cell: (info) => {
         const row = info.row.original
+        const canDelete = row.role !== 'super_admin' && row.id !== currentUserId
         return (
           <Stack direction="row" spacing={0.5}>
             <Button size="small" startIcon={<Edit />} onClick={() => setDialog({ type: 'edit', user: row })}>
@@ -266,6 +279,16 @@ export default function UsersPage() {
                 onClick={() => setConfirm({ user: row, action: 'activate' })}
               >
                 Activate
+              </Button>
+            )}
+            {canDelete && (
+              <Button
+                size="small"
+                color="error"
+                startIcon={<Delete />}
+                onClick={() => setConfirm({ user: row, action: 'delete' })}
+              >
+                Delete
               </Button>
             )}
           </Stack>
@@ -376,20 +399,36 @@ export default function UsersPage() {
 
       <ConfirmationDialog
         open={confirm !== null}
-        title={confirm?.action === 'deactivate' ? 'Deactivate user' : 'Activate user'}
+        title={
+          confirm?.action === 'delete'
+            ? 'Delete user'
+            : confirm?.action === 'deactivate'
+            ? 'Deactivate user'
+            : 'Activate user'
+        }
         message={
           confirm
-            ? `Are you sure you want to ${confirm.action} ${confirm.user.full_name}? ${
-                confirm.action === 'deactivate'
-                  ? 'They will lose access to the app until reactivated.'
-                  : 'They will regain access immediately.'
-              }`
+            ? confirm.action === 'delete'
+              ? `Are you sure you want to delete ${confirm.user.full_name}? This cannot be undone.`
+              : `Are you sure you want to ${confirm.action} ${confirm.user.full_name}? ${
+                  confirm.action === 'deactivate'
+                    ? 'They will lose access to the app until reactivated.'
+                    : 'They will regain access immediately.'
+                }`
             : ''
         }
-        confirmLabel={confirm?.action === 'deactivate' ? 'Deactivate' : 'Activate'}
-        confirmColor={confirm?.action === 'deactivate' ? 'error' : 'success'}
-        loading={updateUser.isPending}
-        onConfirm={() => confirm && handleToggleActive(confirm)}
+        confirmLabel={
+          confirm?.action === 'delete'
+            ? 'Delete'
+            : confirm?.action === 'deactivate'
+            ? 'Deactivate'
+            : 'Activate'
+        }
+        confirmColor={
+          confirm?.action === 'delete' || confirm?.action === 'deactivate' ? 'error' : 'success'
+        }
+        loading={updateUser.isPending || deleteUser.isPending}
+        onConfirm={() => confirm && handleConfirmAction(confirm)}
         onCancel={() => setConfirm(null)}
       />
     </Box>
