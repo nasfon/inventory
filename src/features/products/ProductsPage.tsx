@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useMobileNav } from '../../layouts/mobile/mobileNav'
+import { MobileList, MobileRow } from '../../components/mobile/MobileList'
 import type { ColumnDef, PaginationState } from '@tanstack/react-table'
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
@@ -75,9 +76,16 @@ export default function ProductsPage() {
   const isAdmin = permissions.canManageProducts
   const defaultShopId = isSuperAdmin ? '' : (profile?.shop_id ?? '')
 
+  const mobileNav = useMobileNav()
+  const isMobile = mobileNav.isMobile
+  const [mobileLimit, setMobileLimit] = useState(15)
+
+  const listPage = isMobile ? 0 : pagination.pageIndex
+  const listPageSize = isMobile ? mobileLimit : pagination.pageSize
+
   const productsQuery = useProductsList({
-    page: pagination.pageIndex,
-    pageSize: pagination.pageSize,
+    page: listPage,
+    pageSize: listPageSize,
     search,
     status: statusFilter,
     shopId: isSuperAdmin ? shopFilter : defaultShopId,
@@ -89,7 +97,6 @@ export default function ProductsPage() {
   const updateProduct = useUpdateProduct()
   const deleteProduct = useDeleteProduct()
   const shopName = (shopId: string) => shops.find((shop) => shop.id === shopId)?.name ?? '—'
-  const mobileNav = useMobileNav()
 
   useEffect(() => {
     mobileNav.setRefresh(() => refetchProducts())
@@ -374,17 +381,54 @@ export default function ProductsPage() {
 
       {actionError && <Alert severity="error" sx={{ mb: 2 }}>{actionError}</Alert>}
 
-      <DataTable<ProductRecord>
-        columns={columns}
-        data={data?.rows ?? []}
-        getRowId={(row) => row.id}
-        loading={isLoading}
-        rowCount={data?.count ?? 0}
-        pagination={pagination}
-        onPaginationChange={setPagination}
-        emptyTitle="No products found"
-        emptyDescription="Try adjusting your search or filters."
-      />
+      {isMobile ? (
+        <MobileList<ProductRecord>
+          items={data?.rows ?? []}
+          getKey={(row) => row.id}
+          loading={isLoading}
+          emptyTitle="No products found"
+          emptyDescription="Try adjusting your search or filters."
+          hasMore={!!data && data.count > mobileLimit}
+          onLoadMore={() => setMobileLimit((prev) => prev + 15)}
+          loadingMore={isLoading}
+          renderRow={(row) => {
+            const lowStock = row.is_active && row.quantity <= row.minimum_stock
+            return (
+              <MobileRow
+                accent={lowStock ? 'warning' : row.is_active ? 'success' : 'default'}
+                primary={row.name}
+                secondary={`SKU: ${row.sku}${lowStock ? ' · Low stock' : ''}`}
+                trailing={
+                  <Stack>
+                    <Typography variant="body1" sx={{ fontWeight: 700 }}>
+                      {formatCurrency(row.selling_price)}
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      color={row.is_active ? 'text.secondary' : 'error.main'}
+                    >
+                      {row.is_active ? 'Active' : 'Inactive'}
+                    </Typography>
+                  </Stack>
+                }
+                onClick={isAdmin ? () => setDialog({ type: 'edit', product: row }) : undefined}
+              />
+            )
+          }}
+        />
+      ) : (
+        <DataTable<ProductRecord>
+          columns={columns}
+          data={data?.rows ?? []}
+          getRowId={(row) => row.id}
+          loading={isLoading}
+          rowCount={data?.count ?? 0}
+          pagination={pagination}
+          onPaginationChange={setPagination}
+          emptyTitle="No products found"
+          emptyDescription="Try adjusting your search or filters."
+        />
+      )}
 
       <ProductFormDialog
         key={dialog?.type === 'edit' ? dialog.product.id : 'create'}

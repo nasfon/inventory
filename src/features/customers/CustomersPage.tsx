@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useMobileNav } from '../../layouts/mobile/mobileNav'
+import { MobileList, MobileRow } from '../../components/mobile/MobileList'
 import type { ColumnDef, PaginationState } from '@tanstack/react-table'
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
@@ -58,14 +59,16 @@ export default function CustomersPage() {
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
   const mobileNav = useMobileNav()
+  const isMobile = mobileNav.isMobile
+  const [mobileLimit, setMobileLimit] = useState(15)
 
   const isSuperAdmin = permissions.isSuperAdmin
   const isAdmin = permissions.canManageCustomers
   const defaultShopId = isSuperAdmin ? '' : (profile?.shop_id ?? '')
 
   const customersQuery = useCustomersList({
-    page: pagination.pageIndex,
-    pageSize: pagination.pageSize,
+    page: isMobile ? 0 : pagination.pageIndex,
+    pageSize: isMobile ? mobileLimit : pagination.pageSize,
     search,
     shopId: isSuperAdmin ? shopFilter : defaultShopId,
   })
@@ -290,17 +293,55 @@ export default function CustomersPage() {
 
       {actionError && <Alert severity="error" sx={{ mb: 2 }}>{actionError}</Alert>}
 
-      <DataTable<CustomerRecord>
-        columns={columns}
-        data={data?.rows ?? []}
-        getRowId={(row) => row.id}
-        loading={isLoading}
-        rowCount={data?.count ?? 0}
-        pagination={pagination}
-        onPaginationChange={setPagination}
-        emptyTitle="No customers found"
-        emptyDescription="Try adjusting your search or filters."
-      />
+      {isMobile ? (
+        <MobileList<CustomerRecord>
+          items={data?.rows ?? []}
+          getKey={(row) => row.id}
+          loading={isLoading}
+          emptyTitle="No customers found"
+          emptyDescription="Try adjusting your search or filters."
+          hasMore={!!data && data.count > mobileLimit}
+          onLoadMore={() => setMobileLimit((prev) => prev + 15)}
+          loadingMore={isLoading}
+          renderRow={(row) => {
+            const totals = purchaseTotals.get(row.id)
+            const hasCredit = row.total_credit > 0
+            return (
+              <MobileRow
+                accent={hasCredit ? 'warning' : 'default'}
+                primary={row.full_name}
+                secondary={[row.phone, row.email].filter(Boolean).join(' · ')}
+                trailing={
+                  <Stack>
+                    <Typography
+                      variant="body1"
+                      sx={{ fontWeight: 700, color: hasCredit ? 'error.main' : 'text.primary' }}
+                    >
+                      {formatCurrency(row.total_credit)}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {totals ? `${totals.purchase_count} purchases` : 'No purchases'}
+                    </Typography>
+                  </Stack>
+                }
+                onClick={() => setCustomerProfile(row)}
+              />
+            )
+          }}
+        />
+      ) : (
+        <DataTable<CustomerRecord>
+          columns={columns}
+          data={data?.rows ?? []}
+          getRowId={(row) => row.id}
+          loading={isLoading}
+          rowCount={data?.count ?? 0}
+          pagination={pagination}
+          onPaginationChange={setPagination}
+          emptyTitle="No customers found"
+          emptyDescription="Try adjusting your search or filters."
+        />
+      )}
 
       <CustomerFormDialog
         key={dialog?.type === 'edit' ? dialog.customer.id : 'create'}

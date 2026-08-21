@@ -15,9 +15,12 @@ import { useAuditLogs } from '../../hooks/useAudit'
 import { useAuth } from '../../hooks/useAuth'
 import { useShops } from '../../hooks/useShops'
 import { useUserOptions } from '../../hooks/useUsers'
-import { formatDateTime } from '../../lib/utils'
+import { formatDate, formatDateTime } from '../../lib/utils'
 import { AUDIT_ACTION_LABELS, AUDIT_ACTIONS } from '../../types/audit'
 import type { AuditLogRecord } from '../../types/audit'
+import { useMobileNav } from '../../layouts/mobile/mobileNav'
+import { MobileList, MobileRow } from '../../components/mobile/MobileList'
+import AuditDetailDialog from './AuditDetailDialog'
 
 export default function AuditLogsPage() {
   const { profile } = useAuth()
@@ -33,6 +36,11 @@ export default function AuditLogsPage() {
   const isSuperAdmin = profile?.role === 'super_admin'
   const userScope = isSuperAdmin ? (shopFilter || null) : (profile?.shop_id ?? null)
 
+  const mobileNav = useMobileNav()
+  const isMobile = mobileNav.isMobile
+  const [mobileLimit, setMobileLimit] = useState(15)
+  const [selectedAudit, setSelectedAudit] = useState<AuditLogRecord | null>(null)
+
   const shopsQuery = useShops()
   const shops = shopsQuery.data ?? []
   const shopName = (id: string) => shops.find((shop) => shop.id === id)?.name ?? '—'
@@ -41,8 +49,8 @@ export default function AuditLogsPage() {
   const userOptions = userOptionsQuery.data ?? []
 
   const { data, isLoading } = useAuditLogs({
-    page: pagination.pageIndex,
-    pageSize: pagination.pageSize,
+    page: isMobile ? 0 : pagination.pageIndex,
+    pageSize: isMobile ? mobileLimit : pagination.pageSize,
     search,
     shopId: isSuperAdmin ? shopFilter : undefined,
     userId: userFilter || undefined,
@@ -249,16 +257,56 @@ export default function AuditLogsPage() {
         </Stack>
       </Stack>
 
-      <DataTable<AuditLogRecord>
-        columns={columns}
-        data={data?.rows ?? []}
-        getRowId={(row) => row.id}
-        loading={isLoading}
-        rowCount={data?.count ?? 0}
-        pagination={pagination}
-        onPaginationChange={setPagination}
-        emptyTitle="No audit entries found"
-        emptyDescription="Actions from sales, payments, and user management will appear here."
+      {isMobile ? (
+        <MobileList<AuditLogRecord>
+          items={data?.rows ?? []}
+          getKey={(row) => row.id}
+          loading={isLoading}
+          emptyTitle="No audit entries found"
+          emptyDescription="Actions from sales, payments, and user management will appear here."
+          hasMore={!!data && data.count > mobileLimit}
+          onLoadMore={() => setMobileLimit((prev) => prev + 15)}
+          loadingMore={isLoading}
+          renderRow={(row) => (
+            <MobileRow
+              primary={AUDIT_ACTION_LABELS[row.action] ?? row.action.replace(/_/g, ' ')}
+              secondary={
+                row.user
+                  ? `${row.user.full_name} · ${row.user.role.replace('_', ' ')}`
+                  : 'System'
+              }
+              trailing={
+                <Stack>
+                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    {formatDate(row.created_at)}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {row.entity}
+                  </Typography>
+                </Stack>
+              }
+              onClick={() => setSelectedAudit(row)}
+            />
+          )}
+        />
+      ) : (
+        <DataTable<AuditLogRecord>
+          columns={columns}
+          data={data?.rows ?? []}
+          getRowId={(row) => row.id}
+          loading={isLoading}
+          rowCount={data?.count ?? 0}
+          pagination={pagination}
+          onPaginationChange={setPagination}
+          emptyTitle="No audit entries found"
+          emptyDescription="Actions from sales, payments, and user management will appear here."
+        />
+      )}
+
+      <AuditDetailDialog
+        record={selectedAudit}
+        shopName={shopName(selectedAudit?.shop_id ?? '')}
+        onClose={() => setSelectedAudit(null)}
       />
     </Box>
   )
