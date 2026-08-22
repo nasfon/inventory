@@ -153,14 +153,18 @@ export default function NewSalePage() {
           />
         </Paper>
       ) : (
-        <Stack direction={{ xs: 'column', lg: 'row' }} spacing={3} sx={{ alignItems: 'flex-start' }}>
-          <Stack spacing={3} sx={{ flex: 1, minWidth: 0 }}>
+        <Stack
+          direction={{ xs: 'column', lg: 'row' }}
+          spacing={3}
+          sx={{ alignItems: 'stretch', width: '100%' }}
+        >
+          <Stack spacing={3} sx={{ flex: '1 1 0%', minWidth: 0 }}>
             <CustomerPicker shopId={shopId} value={customer} onChange={setCustomer} />
             <ProductPicker shopId={shopId} addedIds={cart.map((line) => line.product_id)} onAdd={handleAddProduct} />
             <SaleCart items={cart} onChangeQuantity={handleChangeQuantity} onRemove={handleRemove} />
           </Stack>
 
-          <Paper sx={{ p: 2.5, width: { xs: '100%', lg: 340 } }}>
+          <Paper sx={{ p: 2.5, width: { xs: '100%', lg: 280 } }}>
             <Stack spacing={2}>
               <Typography variant="h6">Summary</Typography>
               <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
