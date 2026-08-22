@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState } from 'react'
+import { useState } from 'react'
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -12,13 +12,11 @@ import Typography from '@mui/material/Typography'
 import ShoppingCartCheckout from '@mui/icons-material/ShoppingCartCheckout'
 import PageHeader from '../../components/ui/PageHeader'
 import EmptyState from '../../components/ui/EmptyState'
-import Loading from '../../components/feedback/Loading'
 import { getApiErrorMessage } from '../../lib/errors'
 import { formatCurrency, formatMoneyInput, roundToTwo, sanitizeMoneyInput } from '../../lib/utils'
 import { useAuth } from '../../hooks/useAuth'
 import { useShops } from '../../hooks/useShops'
 import { useCreateSale } from '../../hooks/useSales'
-import { useMobileNav } from '../../layouts/mobile/mobileNav'
 import * as salesService from '../../services/sales'
 import type { CustomerRecord } from '../../types/customers'
 import type { ProductRecord } from '../../types/products'
@@ -28,11 +26,7 @@ import ProductPicker from './ProductPicker'
 import SaleCart, { type CartLine } from './SaleCart'
 import SaleSuccessDialog from './SaleSuccessDialog'
 
-const MobileSalesScreen = lazy(() => import('./MobileSalesScreen'))
-
 export default function NewSalePage() {
-  const mobileNav = useMobileNav()
-  const isMobile = mobileNav.isMobile
   const { profile } = useAuth()
   const [shopSelection, setShopSelection] = useState('')
   const [cart, setCart] = useState<CartLine[]>([])
@@ -126,14 +120,6 @@ export default function NewSalePage() {
     setPaymentMethod('cash')
     setAmountPaidInput(null)
     setSubmitError(null)
-  }
-
-  if (isMobile) {
-    return (
-      <Suspense fallback={<Loading />}>
-        <MobileSalesScreen initialTab="new" />
-      </Suspense>
-    )
   }
 
   return (

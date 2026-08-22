@@ -1,4 +1,4 @@
-import { lazy, Suspense, useEffect, useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { ColumnDef, PaginationState } from '@tanstack/react-table'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -14,17 +14,15 @@ import DataTable from '../../components/data/DataTable'
 import { type TableFeatures } from '../../components/data/table'
 import PageHeader from '../../components/ui/PageHeader'
 import StatusBadge from '../../components/ui/StatusBadge'
-import Loading from '../../components/feedback/Loading'
 import { useAuth } from '../../hooks/useAuth'
 import { useShops } from '../../hooks/useShops'
 import { useSalesList } from '../../hooks/useSales'
-import { formatCurrency, formatDateTime } from '../../lib/utils'
+import { formatCurrency, formatDate, formatDateTime } from '../../lib/utils'
 import type { PaymentMethod, SaleListRow, SaleStatus } from '../../types/sales'
 import { PAYMENT_METHOD_LABELS } from '../../types/sales'
 import SaleDetailsDialog from './SaleDetailsDialog'
 import { useMobileNav } from '../../layouts/mobile/mobileNav'
-
-const MobileSalesScreen = lazy(() => import('./MobileSalesScreen'))
+import { MobileList, MobileRow } from '../../components/mobile/MobileList'
 
 export default function SalesHistoryPage() {
   const { profile } = useAuth()
@@ -40,12 +38,13 @@ export default function SalesHistoryPage() {
 
   const mobileNav = useMobileNav()
   const isMobile = mobileNav.isMobile
+  const [mobileLimit, setMobileLimit] = useState(15)
 
   const isSuperAdmin = profile?.role === 'super_admin'
   const defaultShopId = isSuperAdmin ? '' : (profile?.shop_id ?? '')
 
-  const listPage = pagination.pageIndex
-  const listPageSize = pagination.pageSize
+  const listPage = isMobile ? 0 : pagination.pageIndex
+  const listPageSize = isMobile ? mobileLimit : pagination.pageSize
 
   const { data, isLoading } = useSalesList({
     page: listPage,
@@ -159,14 +158,6 @@ export default function SalesHistoryPage() {
     },
   )
 
-  if (isMobile) {
-    return (
-      <Suspense fallback={<Loading />}>
-        <MobileSalesScreen initialTab="history" />
-      </Suspense>
-    )
-  }
-
   return (
     <Box>
       <PageHeader title="Sales History" subtitle="Browse past sales, filter by date, payment, and status" />
@@ -261,17 +252,48 @@ export default function SalesHistoryPage() {
         </Stack>
       </Stack>
 
-      <DataTable<SaleListRow>
-        columns={columns}
-        data={data?.rows ?? []}
-        getRowId={(row) => row.id}
-        loading={isLoading}
-        rowCount={data?.count ?? 0}
-        pagination={pagination}
-        onPaginationChange={setPagination}
-        emptyTitle="No sales found"
-        emptyDescription="Try adjusting your search or filters."
-      />
+      {isMobile ? (
+        <MobileList<SaleListRow>
+          items={data?.rows ?? []}
+          getKey={(row) => row.id}
+          loading={isLoading}
+          emptyTitle="No sales found"
+          emptyDescription="Try adjusting your search or filters."
+          hasMore={!!data && data.count > mobileLimit}
+          onLoadMore={() => setMobileLimit((prev) => prev + 15)}
+          loadingMore={isLoading}
+          renderRow={(row) => (
+            <MobileRow
+              accent={statusColor(row.status)}
+              primary={row.receipt_number}
+              secondary={`${row.customer_name ?? 'Walk-in'} · ${formatDate(row.created_at)}`}
+              trailing={
+                <Stack>
+                  <Typography variant="body1" sx={{ fontWeight: 700 }}>
+                    {formatCurrency(row.total)}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {PAYMENT_METHOD_LABELS[row.payment_method]}
+                  </Typography>
+                </Stack>
+              }
+              onClick={() => setSelectedId(row.id)}
+            />
+          )}
+        />
+      ) : (
+        <DataTable<SaleListRow>
+          columns={columns}
+          data={data?.rows ?? []}
+          getRowId={(row) => row.id}
+          loading={isLoading}
+          rowCount={data?.count ?? 0}
+          pagination={pagination}
+          onPaginationChange={setPagination}
+          emptyTitle="No sales found"
+          emptyDescription="Try adjusting your search or filters."
+        />
+      )}
 
       <SaleDetailsDialog saleId={selectedId} onClose={() => setSelectedId(null)} />
     </Box>
