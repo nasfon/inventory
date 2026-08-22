@@ -2,6 +2,11 @@ import { useState } from 'react'
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
+import Dialog from '@mui/material/Dialog'
+import DialogActions from '@mui/material/DialogActions'
+import DialogContent from '@mui/material/DialogContent'
+import DialogContentText from '@mui/material/DialogContentText'
+import DialogTitle from '@mui/material/DialogTitle'
 import Divider from '@mui/material/Divider'
 import MenuItem from '@mui/material/MenuItem'
 import Paper from '@mui/material/Paper'
@@ -35,6 +40,7 @@ export default function NewSalePage() {
   const [amountPaidInput, setAmountPaidInput] = useState<string | null>(null)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [successSale, setSuccessSale] = useState<SaleDetail | null>(null)
+  const [partialWarning, setPartialWarning] = useState(false)
 
   const isSuperAdmin = profile?.role === 'super_admin'
   const shopId = isSuperAdmin ? shopSelection : (profile?.shop_id ?? '')
@@ -47,10 +53,12 @@ export default function NewSalePage() {
   const amountPaid = amountPaidInput ?? String(total)
   const amountPaidNum = Number(amountPaid)
   const overpayment = Number.isFinite(amountPaidNum) && amountPaidNum > total
-  const customerMissing = !customer
+  const isWalkIn = !customer
+  const remaining = roundToTwo(total - amountPaidNum)
+  const hasRemainingCredit = remaining > 0.005
   const amountValid = Number.isFinite(amountPaidNum) && amountPaidNum >= 0 && !overpayment
   const canComplete =
-    Boolean(shopId) && cart.length > 0 && !customerMissing && amountValid && !createSale.isPending
+    Boolean(shopId) && cart.length > 0 && amountValid && !createSale.isPending
 
   const handleAddProduct = (product: ProductRecord) => {
     setCart((prev) => {
@@ -93,7 +101,7 @@ export default function NewSalePage() {
     }
   }
 
-  const handleComplete = async () => {
+  const createSaleNow = async () => {
     setSubmitError(null)
     try {
       const saleId = await createSale.mutateAsync({
@@ -112,6 +120,14 @@ export default function NewSalePage() {
     } catch (error) {
       setSubmitError(getApiErrorMessage(error))
     }
+  }
+
+  const handleComplete = () => {
+    if (isWalkIn && hasRemainingCredit) {
+      setPartialWarning(true)
+      return
+    }
+    void createSaleNow()
   }
 
   const handleCancel = () => {
@@ -233,11 +249,6 @@ export default function NewSalePage() {
                   </Typography>
                 </Stack>
               )}
-              {customerMissing && (
-                <Typography variant="body2" color="error.main">
-                  Select a customer to complete the sale.
-                </Typography>
-              )}
               {submitError && <Alert severity="error">{submitError}</Alert>}
               <Button
                 variant="contained"
@@ -251,7 +262,7 @@ export default function NewSalePage() {
               <Button variant="outlined" onClick={handleCancel} disabled={createSale.isPending}>
                 Cancel
               </Button>
-              {!canComplete && cart.length === 0 && !submitError && !customerMissing && (
+              {!canComplete && cart.length === 0 && !submitError && (
                 <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center' }}>
                   Add at least one product to continue.
                 </Typography>
@@ -266,6 +277,29 @@ export default function NewSalePage() {
         sale={successSale}
         onClose={() => setSuccessSale(null)}
       />
+
+      <Dialog open={partialWarning} onClose={() => setPartialWarning(false)}>
+        <DialogTitle>Partial payment for walk-in</DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            Walk-in buyers cannot be given credit. {formatCurrency(remaining)} remains unpaid. Create the sale
+            anyway?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setPartialWarning(false)}>Cancel</Button>
+          <Button
+            variant="contained"
+            disabled={createSale.isPending}
+            onClick={() => {
+              setPartialWarning(false)
+              void createSaleNow()
+            }}
+          >
+            Create
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   )
 }
