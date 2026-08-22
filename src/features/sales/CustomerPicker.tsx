@@ -20,7 +20,7 @@ export default function CustomerPicker({ shopId, value, onChange }: CustomerPick
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
 
-  const { data, isLoading } = useCustomersList({
+  const { data, isLoading, isPlaceholderData } = useCustomersList({
     page: 0,
     pageSize: 5,
     search,
@@ -76,10 +76,10 @@ export default function CustomerPicker({ shopId, value, onChange }: CustomerPick
       <Typography variant="caption" color="text.secondary">
         Selling as walk-in (no customer). Search to attach a customer.
       </Typography>
-      {isLoading && search ? (
-        <CircularProgress size={20} />
-      ) : search ? (
-        matches.length > 0 ? (
+      {search ? (
+        isLoading || isPlaceholderData ? (
+          <CircularProgress size={20} />
+        ) : matches.length > 0 ? (
           <Stack spacing={0.5}>
             {matches.map((customer) => (
               <Button

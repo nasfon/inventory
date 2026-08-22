@@ -23,7 +23,7 @@ export default function ProductPicker({ shopId, addedIds, onAdd }: ProductPicker
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
 
-  const { data, isLoading } = useProductsList({
+  const { data, isLoading, isPlaceholderData } = useProductsList({
     page: 0,
     pageSize: 6,
     search,
@@ -57,10 +57,10 @@ export default function ProductPicker({ shopId, addedIds, onAdd }: ProductPicker
           },
         }}
       />
-      {isLoading && search ? (
-        <CircularProgress size={20} />
-      ) : search ? (
-        results.length > 0 ? (
+      {search ? (
+        isLoading || isPlaceholderData ? (
+          <CircularProgress size={20} />
+        ) : results.length > 0 ? (
           <Stack spacing={1}>
             {results.map((product) => {
               const added = addedSet.has(product.id)
