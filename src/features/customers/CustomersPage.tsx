@@ -1,6 +1,5 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { useMobileNav } from '../../layouts/mobile/mobileNav'
-import { MobileList, MobileRow } from '../../components/mobile/MobileList'
 import type { ColumnDef, PaginationState } from '@tanstack/react-table'
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
@@ -11,6 +10,7 @@ import Select, { type SelectChangeEvent } from '@mui/material/Select'
 import Stack from '@mui/material/Stack'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
+import Loading from '../../components/feedback/Loading'
 import Add from '@mui/icons-material/Add'
 import DeleteOutlined from '@mui/icons-material/DeleteOutlined'
 import Edit from '@mui/icons-material/Edit'
@@ -40,6 +40,8 @@ import {
   type EditCustomerFormValues,
 } from './customersSchema'
 
+const MobileCustomersScreen = lazy(() => import('./MobileCustomersScreen'))
+
 type DialogState =
   | { type: 'create' }
   | { type: 'edit'; customer: CustomerRecord }
@@ -47,6 +49,8 @@ type DialogState =
 type ConfirmState = { customer: CustomerRecord } | null
 
 export default function CustomersPage() {
+  const mobileNav = useMobileNav()
+  const isMobile = mobileNav.isMobile
   const { profile } = useAuth()
   const permissions = usePermissions()
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
@@ -58,26 +62,24 @@ export default function CustomersPage() {
   const [customerProfile, setCustomerProfile] = useState<CustomerRecord | null>(null)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const [actionError, setActionError] = useState<string | null>(null)
-  const mobileNav = useMobileNav()
-  const isMobile = mobileNav.isMobile
-  const [mobileLimit, setMobileLimit] = useState(15)
 
   const isSuperAdmin = permissions.isSuperAdmin
   const isAdmin = permissions.canManageCustomers
   const defaultShopId = isSuperAdmin ? '' : (profile?.shop_id ?? '')
 
   const customersQuery = useCustomersList({
-    page: isMobile ? 0 : pagination.pageIndex,
-    pageSize: isMobile ? mobileLimit : pagination.pageSize,
+    page: pagination.pageIndex,
+    pageSize: pagination.pageSize,
     search,
     shopId: isSuperAdmin ? shopFilter : defaultShopId,
   })
   const { data, isLoading, refetch: refetchCustomers } = customersQuery
 
   useEffect(() => {
+    if (isMobile) return
     mobileNav.setRefresh(() => refetchCustomers())
     return () => mobileNav.setRefresh(null)
-  }, [mobileNav, refetchCustomers])
+  }, [mobileNav, refetchCustomers, isMobile])
   const shopsQuery = useShops()
   const shops = shopsQuery.data ?? []
   const createCustomer = useCreateCustomer()
@@ -241,7 +243,11 @@ export default function CustomersPage() {
     },
   })
 
-  return (
+  return isMobile ? (
+    <Suspense fallback={<Loading />}>
+      <MobileCustomersScreen />
+    </Suspense>
+  ) : (
     <Box>
       <PageHeader
         title="Customers"
@@ -293,55 +299,17 @@ export default function CustomersPage() {
 
       {actionError && <Alert severity="error" sx={{ mb: 2 }}>{actionError}</Alert>}
 
-      {isMobile ? (
-        <MobileList<CustomerRecord>
-          items={data?.rows ?? []}
-          getKey={(row) => row.id}
-          loading={isLoading}
-          emptyTitle="No customers found"
-          emptyDescription="Try adjusting your search or filters."
-          hasMore={!!data && data.count > mobileLimit}
-          onLoadMore={() => setMobileLimit((prev) => prev + 15)}
-          loadingMore={isLoading}
-          renderRow={(row) => {
-            const totals = purchaseTotals.get(row.id)
-            const hasCredit = row.total_credit > 0
-            return (
-              <MobileRow
-                accent={hasCredit ? 'warning' : 'default'}
-                primary={row.full_name}
-                secondary={[row.phone, row.email].filter(Boolean).join(' · ')}
-                trailing={
-                  <Stack>
-                    <Typography
-                      variant="body1"
-                      sx={{ fontWeight: 700, color: hasCredit ? 'error.main' : 'text.primary' }}
-                    >
-                      {formatCurrency(row.total_credit)}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {totals ? `${totals.purchase_count} purchases` : 'No purchases'}
-                    </Typography>
-                  </Stack>
-                }
-                onClick={() => setCustomerProfile(row)}
-              />
-            )
-          }}
-        />
-      ) : (
-        <DataTable<CustomerRecord>
-          columns={columns}
-          data={data?.rows ?? []}
-          getRowId={(row) => row.id}
-          loading={isLoading}
-          rowCount={data?.count ?? 0}
-          pagination={pagination}
-          onPaginationChange={setPagination}
-          emptyTitle="No customers found"
-          emptyDescription="Try adjusting your search or filters."
-        />
-      )}
+      <DataTable<CustomerRecord>
+        columns={columns}
+        data={data?.rows ?? []}
+        getRowId={(row) => row.id}
+        loading={isLoading}
+        rowCount={data?.count ?? 0}
+        pagination={pagination}
+        onPaginationChange={setPagination}
+        emptyTitle="No customers found"
+        emptyDescription="Try adjusting your search or filters."
+      />
 
       <CustomerFormDialog
         key={dialog?.type === 'edit' ? dialog.customer.id : 'create'}

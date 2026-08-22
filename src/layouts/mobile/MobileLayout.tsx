@@ -13,7 +13,8 @@ import { getNavItems, type PageKey } from '../navigation'
 import MobileTopBar from './MobileTopBar'
 import BottomTabBar, { BAR_HEIGHT, type BottomTab } from './BottomTabBar'
 import MoreSheet from './MoreSheet'
-import { MobileNavContext } from './mobileNav'
+import { MobileNavContext, type FabConfig } from './mobileNav'
+import FAB from '../../components/mobile/FAB'
 
 const PRIMARY_TABS = ['dashboard', 'products', 'sales', 'customers'] as const
 const MODAL_KEYS: PageKey[] = ['sales']
@@ -33,6 +34,7 @@ export default function MobileLayout() {
   const [titleOverride, setTitleOverride] = useState<string | null>(null)
   const [showBackOverride, setShowBackOverride] = useState(false)
   const [refreshFn, setRefreshFn] = useState<(() => unknown) | null>(null)
+  const [fab, setFab] = useState<FabConfig | null>(null)
   const [pull, setPull] = useState(0)
   const [refreshing, setRefreshing] = useState(false)
   const [signingOut, setSigningOut] = useState(false)
@@ -58,6 +60,7 @@ export default function MobileLayout() {
   const navigate = useCallback((key: string) => {
     setPull(0)
     setRefreshing(false)
+    setFab(null)
     if (key === 'more') {
       setMoreOpen(true)
       return
@@ -130,7 +133,10 @@ export default function MobileLayout() {
       setTitle: (value: string | null) => setTitleOverride(value),
       setShowBack: (value: boolean) => setShowBackOverride(value),
       setRefresh: (value: (() => unknown) | null) => setRefreshFn(value),
+      setFab: (value: FabConfig | null) => setFab(value),
+      navigate: (key: PageKey) => navigate(key),
     }),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [],
   )
 
@@ -140,6 +146,7 @@ export default function MobileLayout() {
         sx={{
           minHeight: '100vh',
           bgcolor: 'background.default',
+          overflowX: 'clip',
           pb: showBottomBar ? `calc(${BAR_HEIGHT}px + env(safe-area-inset-bottom) + 16px)` : 'env(safe-area-inset-bottom)',
         }}
       >
@@ -202,6 +209,15 @@ export default function MobileLayout() {
             activeKey={topKey}
             moreActive={!PRIMARY_TABS.includes(topKey as (typeof PRIMARY_TABS)[number])}
             onSelect={(key) => navigate(key as PageKey)}
+          />
+        )}
+
+        {showBottomBar && fab && (
+          <FAB
+            icon={fab.icon}
+            label={fab.label}
+            color={fab.color}
+            onClick={fab.onClick}
           />
         )}
 

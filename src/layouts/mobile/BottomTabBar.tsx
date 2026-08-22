@@ -71,8 +71,6 @@ export default function BottomTabBar({ tabs, activeKey, moreActive, onSelect }: 
                   color: 'primary.contrastText',
                   boxShadow: 3,
                   '&:hover': { bgcolor: 'primary.dark' },
-                  transition: 'transform 120ms ease',
-                  transform: isActive ? 'scale(1.06)' : 'scale(1)',
                 }}
               >
                 <tab.icon fontSize="medium" />

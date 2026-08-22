@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useState, type ComponentType } from 'react'
+import { lazy, Suspense, useCallback, useEffect, useState, type ComponentType } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import type { SvgIconProps } from '@mui/material/SvgIcon'
+import Loading from '../../components/feedback/Loading'
 import AccountBalanceWallet from '@mui/icons-material/AccountBalanceWallet'
 import Inventory2 from '@mui/icons-material/Inventory2'
 import Payments from '@mui/icons-material/Payments'
@@ -42,6 +43,8 @@ import CustomerFormDialog from '../customers/CustomerFormDialog'
 import type { CreateCustomerFormValues, EditCustomerFormValues } from '../customers/customersSchema'
 import ExpenseFormDialog from '../expenses/ExpenseFormDialog'
 import type { CreateExpenseFormValues } from '../expenses/expensesSchema'
+
+const MobileDashboardScreen = lazy(() => import('./MobileDashboardScreen'))
 
 interface StatCardProps {
   icon: ComponentType<SvgIconProps>
@@ -117,15 +120,17 @@ export default function DashboardPage({ onNavigate }: DashboardPageProps = {}) {
   const createCustomer = useCreateCustomer()
   const createExpense = useCreateExpense()
   const mobileNav = useMobileNav()
+  const isMobile = mobileNav.isMobile
 
   const refreshDashboard = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: ['dashboard'] })
   }, [queryClient])
 
   useEffect(() => {
+    if (isMobile) return
     mobileNav.setRefresh(() => refreshDashboard())
     return () => mobileNav.setRefresh(null)
-  }, [mobileNav, refreshDashboard])
+  }, [mobileNav, refreshDashboard, isMobile])
 
   const closeDialog = () => {
     setDialog(null)
@@ -192,7 +197,11 @@ export default function DashboardPage({ onNavigate }: DashboardPageProps = {}) {
 
   const isSubmitting = createProduct.isPending || createCustomer.isPending || createExpense.isPending
 
-  return (
+  return isMobile ? (
+    <Suspense fallback={<Loading />}>
+      <MobileDashboardScreen />
+    </Suspense>
+  ) : (
     <Box>
       <PageHeader title="Dashboard" subtitle="Overview of sales, inventory, and credit across your shop" />
 

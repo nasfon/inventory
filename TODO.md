@@ -124,9 +124,9 @@ Spec reference: `docs/Mobile UI Specification.md`
 
 ### Screens
 - [ ] Login (full-screen, inline errors, optional biometric slot)
-- [ ] Dashboard (2-col stat grid, low-stock chips, recent sales, quick actions, pull-to-refresh)
-- [ ] Products (inline search, filter chips, swipe actions, infinite scroll, Add/Edit sheet)
-- [ ] Customers (search, list, detail tabs, Record Payment sheet)
+- [x] Dashboard (2-col stat grid, low-stock chips, recent sales, quick actions, pull-to-refresh)
+ - [x] Products (inline search, filter chips, swipe actions, infinite scroll, Add/Edit sheet)
+ - [x] Customers (inline search, filter chips, swipe actions, infinite scroll, Add/Edit sheet)
 - [ ] Sales (History tab + New Sale full-screen flow: customer → items → summary/pay → confirm)
 - [ ] Receipt (mobile ticket, Print / Save PNG / Download PDF)
 - [ ] Credit Book (list, history, Record Payment, Mark Fully Paid)
