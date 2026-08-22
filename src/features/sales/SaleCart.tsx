@@ -6,13 +6,6 @@ import Divider from '@mui/material/Divider'
 import IconButton from '@mui/material/IconButton'
 import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
-import Table from '@mui/material/Table'
-import TableBody from '@mui/material/TableBody'
-import TableCell from '@mui/material/TableCell'
-import TableContainer from '@mui/material/TableContainer'
-import TableHead from '@mui/material/TableHead'
-import TableRow from '@mui/material/TableRow'
-import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import { formatCurrency } from '../../lib/utils'
 
@@ -32,7 +25,7 @@ interface SaleCartProps {
 }
 
 export default function SaleCart({ items, onChangeQuantity, onRemove }: SaleCartProps) {
-  const subtotal = items.reduce((sum, item) => sum + item.unit_price * item.quantity, 0)
+  const total = items.reduce((sum, item) => sum + item.unit_price * item.quantity, 0)
 
   if (items.length === 0) {
     return (
@@ -45,85 +38,80 @@ export default function SaleCart({ items, onChangeQuantity, onRemove }: SaleCart
   }
 
   return (
-    <Paper>
-      <TableContainer>
-        <Table size="small">
-          <TableHead>
-            <TableRow>
-              <TableCell>Item</TableCell>
-              <TableCell align="right">Price</TableCell>
-              <TableCell align="center">Qty</TableCell>
-              <TableCell align="right">Total</TableCell>
-              <TableCell />
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {items.map((item) => (
-              <TableRow key={item.product_id}>
-                <TableCell>
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                    {item.name}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {item.sku}
-                  </Typography>
-                </TableCell>
-                <TableCell align="right">
-                  <Typography variant="body2">{formatCurrency(item.unit_price)}</Typography>
-                </TableCell>
-                <TableCell align="center">
-                  <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', justifyContent: 'center' }}>
-                    <IconButton
-                      size="small"
-                      aria-label="Decrease quantity"
-                      onClick={() => onChangeQuantity(item.product_id, item.quantity - 1)}
-                      disabled={item.quantity <= 1}
-                    >
-                      <Remove fontSize="small" />
-                    </IconButton>
-                    <TextField
-                      value={item.quantity}
-                      onChange={(event) => {
-                        const next = Number(event.target.value)
-                        onChangeQuantity(item.product_id, Number.isInteger(next) ? next : 0)
-                      }}
-                      slotProps={{ htmlInput: { min: 1, max: item.available, step: 1, style: { textAlign: 'center' } } }}
-                      size="small"
-                      type="number"
-                      sx={{ width: 72 }}
-                    />
-                    <IconButton
-                      size="small"
-                      aria-label="Increase quantity"
-                      onClick={() => onChangeQuantity(item.product_id, item.quantity + 1)}
-                      disabled={item.quantity >= item.available}
-                    >
-                      <Add fontSize="small" />
-                    </IconButton>
-                  </Stack>
-                </TableCell>
-                <TableCell align="right">
-                  <Typography variant="body2">{formatCurrency(item.unit_price * item.quantity)}</Typography>
-                </TableCell>
-                <TableCell align="right">
-                  <IconButton size="small" aria-label="Remove item" onClick={() => onRemove(item.product_id)}>
-                    <DeleteOutlined fontSize="small" />
-                  </IconButton>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+    <Paper sx={{ overflow: 'hidden' }}>
+      <Stack divider={<Divider />}>
+        {items.map((item) => (
+          <Stack
+            key={item.product_id}
+            direction="row"
+            spacing={1}
+            sx={{ alignItems: 'center', px: 2, py: 1.25 }}
+          >
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Typography noWrap variant="body2" sx={{ fontWeight: 600 }}>
+                {item.name}
+              </Typography>
+              <Typography variant="caption" color="text.secondary">
+                {formatCurrency(item.unit_price)}
+              </Typography>
+            </Box>
+
+            <Stack direction="row" spacing={0.25} sx={{ alignItems: 'center' }}>
+              <IconButton
+                size="small"
+                aria-label="Decrease quantity"
+                onClick={() => onChangeQuantity(item.product_id, item.quantity - 1)}
+                disabled={item.quantity <= 1}
+              >
+                <Remove fontSize="small" />
+              </IconButton>
+              <Typography
+                variant="body2"
+                sx={{ minWidth: 22, textAlign: 'center', fontWeight: 600 }}
+              >
+                {item.quantity}
+              </Typography>
+              <IconButton
+                size="small"
+                aria-label="Increase quantity"
+                onClick={() => onChangeQuantity(item.product_id, item.quantity + 1)}
+                disabled={item.quantity >= item.available}
+              >
+                <Add fontSize="small" />
+              </IconButton>
+            </Stack>
+
+            <Typography
+              variant="body2"
+              sx={{ minWidth: 78, textAlign: 'right', fontWeight: 700 }}
+            >
+              {formatCurrency(item.unit_price * item.quantity)}
+            </Typography>
+
+            <IconButton
+              size="small"
+              aria-label="Remove item"
+              onClick={() => onRemove(item.product_id)}
+              sx={{ color: 'text.secondary' }}
+            >
+              <DeleteOutlined fontSize="small" />
+            </IconButton>
+          </Stack>
+        ))}
+      </Stack>
+
       <Divider />
-      <Box sx={{ p: 2, display: 'flex', justifyContent: 'flex-end' }}>
-        <Stack direction="row" spacing={1} sx={{ alignItems: 'baseline' }}>
-          <Typography variant="body2" color="text.secondary">
-            Subtotal
-          </Typography>
-          <Typography variant="h6">{formatCurrency(subtotal)}</Typography>
-        </Stack>
-      </Box>
+      <Stack
+        direction="row"
+        sx={{ justifyContent: 'space-between', px: 2, py: 1.5 }}
+      >
+        <Typography variant="body2" color="text.secondary">
+          Total
+        </Typography>
+        <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+          {formatCurrency(total)}
+        </Typography>
+      </Stack>
     </Paper>
   )
 }
