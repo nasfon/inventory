@@ -23,9 +23,16 @@ const ProductsPage = lazy(() => import('../features/products/ProductsPage'))
 const CustomersPage = lazy(() => import('../features/customers/CustomersPage'))
 const SalesPage = lazy(() => import('../features/sales/NewSalePage'))
 const SalesHistoryPage = lazy(() => import('../features/sales/SalesHistoryPage'))
+const ReceiptPage = lazy(() => import('../features/sales/mobile/MobileReceiptScreen'))
 const CreditBookPage = lazy(() => import('../features/credit/CreditBookPage'))
 const AuditLogsPage = lazy(() => import('../features/audit/AuditLogsPage'))
 const ExpensesPage = lazy(() => import('../features/expenses/ExpensesPage'))
+const CustomerProfilePage = lazy(() => import('../features/customers/mobile/MobileCustomerProfileScreen'))
+
+export interface NavigateParams {
+  saleId?: string
+  customerId?: string
+}
 
 export type PageKey =
   | 'dashboard'
@@ -33,6 +40,8 @@ export type PageKey =
   | 'customers'
   | 'sales'
   | 'sales-history'
+  | 'receipt'
+  | 'customer-profile'
   | 'credit-book'
   | 'expenses'
   | 'reports'
@@ -46,8 +55,9 @@ export interface NavItem {
   label: string
   icon: ComponentType<SvgIconProps>
   permission?: Permission
-  Page?: ComponentType<{ onNavigate?: (key: PageKey) => void }>
+  Page?: ComponentType<{ onNavigate?: (key: PageKey, params?: NavigateParams) => void }>
   placeholder?: string
+  hidden?: boolean
 }
 
 export const navItems: NavItem[] = [
@@ -75,6 +85,20 @@ export const navItems: NavItem[] = [
     label: 'Sales History',
     icon: ReceiptLong,
     Page: SalesHistoryPage,
+  },
+  {
+    key: 'receipt',
+    label: 'Receipt',
+    icon: ReceiptLong,
+    Page: ReceiptPage,
+    hidden: true,
+  },
+  {
+    key: 'customer-profile',
+    label: 'Customer',
+    icon: People,
+    Page: CustomerProfilePage,
+    hidden: true,
   },
   {
     key: 'credit-book',
@@ -122,8 +146,11 @@ export const navItems: NavItem[] = [
 ]
 
 export function getNavItems(role?: RoleName | null): NavItem[] {
+  const visible = navItems.filter((item) => !item.hidden)
   if (!role) {
-    return navItems.filter((item) => !item.permission)
+    return visible.filter((item) => !item.permission)
   }
-  return navItems.filter((item) => !item.permission || can(role, item.permission))
+  return visible.filter((item) => !item.permission || can(role, item.permission))
 }
+
+export const navItemMap = new Map(navItems.map((item) => [item.key, item]))

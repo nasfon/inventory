@@ -37,7 +37,7 @@ export default function SaleSuccessDialog({ open, sale, onClose }: SaleSuccessDi
           <ReceiptSheet sale={sale} shop={shop} forPrint />
         </DialogContent>
         <DialogActions sx={{ justifyContent: 'center', pb: 3, gap: 1 }}>
-          <ReceiptActions sale={sale} shop={shop} />
+          <ReceiptActions sale={sale} />
           <Button onClick={onClose} variant="contained">
             Done
           </Button>

@@ -79,7 +79,7 @@ function ReceiptContent({ sale, shop }: ReceiptSheetProps) {
         <MetaRow label="Receipt No." value={sale.receipt_number} />
         <MetaRow label="Date & Time" value={formatDateTime(sale.created_at)} />
         <MetaRow label="Payment Method" value={PAYMENT_METHOD_LABELS[sale.payment_method]} />
-        <MetaRow label="Customer" value={sale.customer_id ? 'Customer on file' : 'Walk-in / Guest'} />
+        <MetaRow label="Customer" value={sale.customer_name ?? (sale.customer_id ? 'Customer on file' : 'Walk-in / Guest')} />
       </div>
 
       <div style={{ borderTop: '1px solid #e2e8f0', margin: '12px 0' }} />

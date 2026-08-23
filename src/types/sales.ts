@@ -35,6 +35,7 @@ export interface SaleRecord {
   id: string
   shop_id: string
   customer_id: string | null
+  customer_name: string | null
   cashier_id: string
   receipt_number: string
   subtotal: number

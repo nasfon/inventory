@@ -277,7 +277,7 @@ export default function SalesHistoryPage() {
                   </Typography>
                 </Stack>
               }
-              onClick={() => setSelectedId(row.id)}
+              onClick={() => mobileNav.navigate('receipt', { saleId: row.id })}
             />
           )}
         />

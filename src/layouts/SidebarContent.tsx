@@ -8,13 +8,13 @@ import Tooltip from '@mui/material/Tooltip'
 import Typography from '@mui/material/Typography'
 import Logout from '@mui/icons-material/Logout'
 import Logo from '../components/ui/Logo'
-import { type NavItem, type PageKey } from './navigation'
+import { type NavItem, type NavigateParams, type PageKey } from './navigation'
 
 interface SidebarContentProps {
   items: NavItem[]
   activeKey: PageKey
   collapsed: boolean
-  onNavigate: (key: PageKey) => void
+  onNavigate: (key: PageKey, params?: NavigateParams) => void
   onLogout: () => void
   signingOut: boolean
 }

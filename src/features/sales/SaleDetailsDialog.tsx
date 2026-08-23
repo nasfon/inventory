@@ -65,7 +65,7 @@ export default function SaleDetailsDialog({ saleId, onClose }: SaleDetailsDialog
                   Customer
                 </Typography>
                 <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                  {sale.customer_id ? 'Customer on file' : 'Walk-in / Guest'}
+                  {sale.customer_name ?? (sale.customer_id ? 'Customer on file' : 'Walk-in / Guest')}
                 </Typography>
               </Stack>
               <Stack direction="row" sx={{ justifyContent: 'space-between' }}>
@@ -152,7 +152,7 @@ export default function SaleDetailsDialog({ saleId, onClose }: SaleDetailsDialog
       <DialogActions>
         {sale && (
           <>
-            <ReceiptActions sale={sale} shop={shop} />
+            <ReceiptActions sale={sale} />
             <ReceiptSheet sale={sale} shop={shop} forPrint />
           </>
         )}

@@ -276,7 +276,7 @@ export default function MobileCustomersScreen() {
               <SwipeableRow
                 key={customer.id}
                 actions={getActions(customer)}
-                onClick={canManage ? () => setDialog({ type: 'edit', customer }) : undefined}
+                onClick={() => mobileNav.navigate('customer-profile', { customerId: customer.id })}
               >
                 <CustomerRow customer={customer} purchaseCount={totals?.purchase_count} />
               </SwipeableRow>

@@ -1,7 +1,7 @@
 import type { ComponentType } from 'react'
 import type { SvgIconProps } from '@mui/material/SvgIcon'
 import { createContext, useContext } from 'react'
-import type { PageKey } from '../navigation'
+import type { NavigateParams, PageKey } from '../navigation'
 
 export interface FabConfig {
   icon: ComponentType<SvgIconProps>
@@ -16,7 +16,8 @@ export interface MobileNavValue {
   setShowBack: (show: boolean) => void
   setRefresh: (refresh: (() => unknown) | null) => void
   setFab: (fab: FabConfig | null) => void
-  navigate: (key: PageKey) => void
+  navigate: (key: PageKey, params?: NavigateParams) => void
+  params?: NavigateParams
 }
 
 const noop = () => {}

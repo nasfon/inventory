@@ -128,7 +128,7 @@ Spec reference: `docs/Mobile UI Specification.md`
  - [x] Products (inline search, filter chips, swipe actions, infinite scroll, Add/Edit sheet)
  - [x] Customers (inline search, filter chips, swipe actions, infinite scroll, Add/Edit sheet)
 - [ ] Sales (History tab + New Sale full-screen flow: customer → items → summary/pay → confirm)
-- [ ] Receipt (mobile ticket, Print / Save PNG / Download PDF)
+- [x] Receipt (mobile ticket, Print / Save PNG / Download PDF)
 - [ ] Credit Book (list, history, Record Payment, Mark Fully Paid)
 - [ ] Expenses (list, Record Expense sheet)
 - [ ] Reports (cards, shop/date-range filter sheet, Print/PDF)

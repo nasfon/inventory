@@ -9,7 +9,7 @@ import PointOfSale from '@mui/icons-material/PointOfSale'
 import MoreHoriz from '@mui/icons-material/MoreHoriz'
 import Loading from '../../components/feedback/Loading'
 import { useAuth } from '../../hooks/useAuth'
-import { getNavItems, type PageKey } from '../navigation'
+import { getNavItems, navItemMap, type NavigateParams, type PageKey } from '../navigation'
 import MobileTopBar from './MobileTopBar'
 import BottomTabBar, { BAR_HEIGHT, type BottomTab } from './BottomTabBar'
 import MoreSheet from './MoreSheet'
@@ -18,6 +18,7 @@ import FAB from '../../components/mobile/FAB'
 
 const PRIMARY_TABS = ['dashboard', 'products', 'sales', 'customers'] as const
 const MODAL_KEYS: PageKey[] = ['sales']
+const HIDE_TABS = new Map<PageKey, true>([['receipt', true], ['customer-profile', true]])
 
 const bottomTabs: BottomTab[] = [
   { key: 'dashboard', label: 'Home', icon: Dashboard },
@@ -29,7 +30,7 @@ const bottomTabs: BottomTab[] = [
 
 export default function MobileLayout() {
   const { profile, logout } = useAuth()
-  const [stack, setStack] = useState<PageKey[]>(['dashboard'])
+  const [stack, setStack] = useState<{ key: PageKey; params?: NavigateParams }[]>([{ key: 'dashboard' }])
   const [moreOpen, setMoreOpen] = useState(false)
   const [titleOverride, setTitleOverride] = useState<string | null>(null)
   const [showBackOverride, setShowBackOverride] = useState(false)
@@ -43,12 +44,13 @@ export default function MobileLayout() {
   const gesture = useRef<{ dx: number; dy: number }>({ dx: 0, dy: 0 })
 
   const items = useMemo(() => getNavItems(profile?.role), [profile?.role])
-  const itemMap = useMemo(() => new Map(items.map((item) => [item.key, item])), [items])
 
-  const topKey = stack[stack.length - 1]
+  const topEntry = stack[stack.length - 1]
+  const topKey = topEntry.key
+  const topParams = topEntry.params
   const topIsModal = MODAL_KEYS.includes(topKey)
-  const visibleItem = itemMap.get(topKey) ?? items[0]
-  const showBottomBar = !topIsModal
+  const visibleItem = navItemMap.get(topKey) ?? items[0]
+  const showBottomBar = !topIsModal && !HIDE_TABS.has(topKey)
   const title = titleOverride ?? visibleItem?.label ?? 'IMS'
   const backVisible = stack.length > 1 || showBackOverride
 
@@ -57,7 +59,7 @@ export default function MobileLayout() {
     setStack((prev) => (prev.length > 1 ? prev.slice(0, -1) : prev))
   }
 
-  const navigate = useCallback((key: string) => {
+  const navigate = useCallback((key: string, params?: NavigateParams) => {
     setPull(0)
     setRefreshing(false)
     setFab(null)
@@ -66,14 +68,14 @@ export default function MobileLayout() {
       return
     }
     if (MODAL_KEYS.includes(key as PageKey)) {
-      setStack((prev) => [...prev, key as PageKey])
+      setStack((prev) => [...prev, { key: key as PageKey, params }])
       return
     }
     if (PRIMARY_TABS.includes(key as (typeof PRIMARY_TABS)[number])) {
-      setStack([key as PageKey])
+      setStack([{ key: key as PageKey }])
       return
     }
-    setStack((prev) => [...prev, key as PageKey])
+    setStack((prev) => [...prev, { key: key as PageKey, params }])
   }, [])
 
   const handleLogout = async () => {
@@ -134,10 +136,11 @@ export default function MobileLayout() {
       setShowBack: (value: boolean) => setShowBackOverride(value),
       setRefresh: (value: (() => unknown) | null) => setRefreshFn(value),
       setFab: (value: FabConfig | null) => setFab(value),
-      navigate: (key: PageKey) => navigate(key),
+      navigate: (key: PageKey, params?: NavigateParams) => navigate(key, params),
+      params: topParams,
     }),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
+    [topParams],
   )
 
   return (

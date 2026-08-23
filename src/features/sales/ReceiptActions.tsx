@@ -7,14 +7,12 @@ import Print from '@mui/icons-material/Print'
 import { downloadReceiptImage } from '../../lib/receiptImage'
 import { downloadReceiptPdf } from '../../lib/receiptPdf'
 import type { SaleDetail } from '../../types/sales'
-import type { ShopRecord } from '../../types/shops'
 
 interface ReceiptActionsProps {
   sale: SaleDetail
-  shop: ShopRecord | null
 }
 
-export default function ReceiptActions({ sale, shop }: ReceiptActionsProps) {
+export default function ReceiptActions({ sale }: ReceiptActionsProps) {
   const [pending, setPending] = useState<'pdf' | 'image' | null>(null)
 
   const handlePrint = () => {
@@ -25,7 +23,7 @@ export default function ReceiptActions({ sale, shop }: ReceiptActionsProps) {
     setPending(kind)
     try {
       if (kind === 'pdf') {
-        await downloadReceiptPdf(sale, shop)
+        await downloadReceiptPdf(sale)
       } else {
         await downloadReceiptImage(sale.receipt_number)
       }

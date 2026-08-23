@@ -15,10 +15,12 @@ const saleSelect =
   'id, shop_id, customer_id, cashier_id, receipt_number, subtotal, total, amount_paid, remaining_credit, payment_method, status, created_at, updated_at'
 
 function mapSaleRow(row: Record<string, unknown>): SaleRecord {
+  const customer = (row.customer as { full_name?: string } | undefined)?.full_name
   return {
     id: row.id as string,
     shop_id: row.shop_id as string,
     customer_id: row.customer_id as string | null,
+    customer_name: (customer ?? (row.customer_name as string | null)) ?? null,
     cashier_id: row.cashier_id as string,
     receipt_number: row.receipt_number as string,
     subtotal: Number(row.subtotal),
@@ -51,7 +53,7 @@ export async function getSale(saleId: string): Promise<SaleDetail> {
   const { data, error } = await supabase
     .from('sales')
     .select(
-      `${saleSelect}, items:sale_items(id, product_id, product_name, quantity, unit_price, total_price)`,
+      `${saleSelect}, customer:customers(full_name), items:sale_items(id, product_id, product_name, quantity, unit_price, total_price)`,
     )
     .eq('id', saleId)
     .single()
