@@ -1,4 +1,10 @@
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  keepPreviousData,
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query'
 import * as rolesService from '../services/roles'
 import * as usersService from '../services/users'
 import type {
@@ -14,6 +20,22 @@ export function useUsers(params: UserListParams) {
   return useQuery({
     queryKey: ['users', params],
     queryFn: () => usersService.listUsers(params),
+    placeholderData: keepPreviousData,
+  })
+}
+
+export function useInfiniteUsersList(
+  params: Omit<UserListParams, 'page' | 'pageSize'>,
+  pageSize = 15,
+) {
+  return useInfiniteQuery({
+    queryKey: ['users', 'infinite', params, pageSize],
+    queryFn: ({ pageParam }) => usersService.listUsers({ ...params, page: pageParam, pageSize }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) => {
+      const loaded = allPages.reduce((total, page) => total + page.rows.length, 0)
+      return loaded < lastPage.count ? allPages.length : undefined
+    },
     placeholderData: keepPreviousData,
   })
 }

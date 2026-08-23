@@ -134,7 +134,7 @@ Spec reference: `docs/Mobile UI Specification.md`
 - [ ] Reports (cards, shop/date-range filter sheet, Print/PDF)
 - [ ] Audit Logs (filterable list, role-restricted)
 - [ ] Shops (Super Admin list + Add/Edit/Disable)
-- [ ] Users (list + Add/Edit/Activate/Deactivate)
+- [x] Users (list + Add/Edit/Activate/Deactivate)
 - [ ] Business Settings (info, logo, contact, receipt footer)
 
 ### Reusable Mobile Components

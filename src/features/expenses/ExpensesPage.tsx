@@ -1,10 +1,11 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import { useMobileNav } from '../../layouts/mobile/mobileNav'
 import type { ColumnDef, PaginationState } from '@tanstack/react-table'
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import InputAdornment from '@mui/material/InputAdornment'
+import Loading from '../../components/feedback/Loading'
 import MenuItem from '@mui/material/MenuItem'
 import Select, { type SelectChangeEvent } from '@mui/material/Select'
 import Stack from '@mui/material/Stack'
@@ -25,7 +26,11 @@ import type { ExpenseRecord } from '../../types/expenses'
 import ExpenseFormDialog from './ExpenseFormDialog'
 import type { CreateExpenseFormValues } from './expensesSchema'
 
+const MobileExpensesScreen = lazy(() => import('./mobile/MobileExpensesScreen'))
+
 export default function ExpensesPage() {
+  const mobileNav = useMobileNav()
+  const isMobile = mobileNav.isMobile
   const { profile } = useAuth()
   const permissions = usePermissions()
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
@@ -52,7 +57,6 @@ export default function ExpensesPage() {
   })
   const { data, isLoading, refetch: refetchExpenses } = expensesQuery
   const createExpense = useCreateExpense()
-  const mobileNav = useMobileNav()
 
   useEffect(() => {
     mobileNav.setRefresh(() => refetchExpenses())
@@ -66,6 +70,15 @@ export default function ExpensesPage() {
     }, 300)
     return () => clearTimeout(timer)
   }, [searchInput])
+
+  if (isMobile) {
+    return (
+      <Suspense fallback={<Loading />}>
+        <MobileExpensesScreen />
+      </Suspense>
+    )
+  }
+
 
   const resetFilters = () => {
     setFromDate('')

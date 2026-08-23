@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import type { ColumnDef, PaginationState } from '@tanstack/react-table'
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import InputAdornment from '@mui/material/InputAdornment'
+import Loading from '../../components/feedback/Loading'
 import MenuItem from '@mui/material/MenuItem'
 import Select, { type SelectChangeEvent } from '@mui/material/Select'
 import Stack from '@mui/material/Stack'
@@ -22,6 +23,7 @@ import { type TableFeatures } from '../../components/data/table'
 import PageHeader from '../../components/ui/PageHeader'
 import StatusBadge from '../../components/ui/StatusBadge'
 import ConfirmationDialog from '../../components/ui/ConfirmationDialog'
+import { useMobileNav } from '../../layouts/mobile/mobileNav'
 import { getApiErrorMessage } from '../../lib/errors'
 import { useAuth } from '../../hooks/useAuth'
 import { usePermissions } from '../../hooks/usePermissions'
@@ -48,6 +50,8 @@ import {
   type ResetPasswordFormValues,
 } from './userSchema'
 
+const MobileUsersScreen = lazy(() => import('./MobileUsersScreen'))
+
 const roleColors: Record<RoleName, 'primary' | 'secondary' | 'error'> = {
   super_admin: 'error',
   shop_admin: 'primary',
@@ -63,6 +67,8 @@ type DialogState =
 type ConfirmState = { user: UserRecord; action: 'activate' | 'deactivate' | 'delete' } | null
 
 export default function UsersPage() {
+  const mobileNav = useMobileNav()
+  const isMobile = mobileNav.isMobile
   const permissions = usePermissions()
   const { user } = useAuth()
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
@@ -107,6 +113,14 @@ export default function UsersPage() {
     }, 300)
     return () => clearTimeout(timer)
   }, [searchInput])
+
+  if (isMobile) {
+    return (
+      <Suspense fallback={<Loading />}>
+        <MobileUsersScreen />
+      </Suspense>
+    )
+  }
 
   if (!isAdmin) {
     return (
