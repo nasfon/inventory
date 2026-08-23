@@ -14,3 +14,17 @@ export type RecordPaymentFormValues = z.output<ReturnType<typeof recordPaymentSc
 export type RecordPaymentFormInput = z.input<ReturnType<typeof recordPaymentSchema>>
 
 export const CREDIT_PAYMENT_METHOD_OPTIONS: CreditPaymentMethod[] = ['cash', 'card', 'transfer']
+
+export const manualCreditSchema = z.object({
+  amount: z.coerce
+    .number()
+    .positive('Amount must be greater than 0'),
+  reason: z
+    .string()
+    .max(500, 'Reason must be 500 characters or fewer')
+    .optional()
+    .or(z.literal('')),
+})
+
+export type ManualCreditFormValues = z.output<typeof manualCreditSchema>
+export type ManualCreditFormInput = z.input<typeof manualCreditSchema>

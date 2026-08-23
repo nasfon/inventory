@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import type { ColumnDef, PaginationState } from '@tanstack/react-table'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -9,6 +9,7 @@ import Select, { type SelectChangeEvent } from '@mui/material/Select'
 import Stack from '@mui/material/Stack'
 import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
+import Loading from '../../components/feedback/Loading'
 import Search from '@mui/icons-material/Search'
 import Visibility from '@mui/icons-material/Visibility'
 import DataTable from '../../components/data/DataTable'
@@ -16,13 +17,19 @@ import type { TableFeatures } from '../../components/data/table'
 import PageHeader from '../../components/ui/PageHeader'
 import { formatCurrency } from '../../lib/utils'
 import { useAuth } from '../../hooks/useAuth'
+import { useMobileNav } from '../../layouts/mobile/mobileNav'
 import { useShops } from '../../hooks/useShops'
 import { useCreditSummary, useCustomersWithCredit } from '../../hooks/useCredit'
 import type { CustomerRecord } from '../../types/customers'
 import CreditCustomerDialog from './CreditCustomerDialog'
 
+const MobileCreditBookScreen = lazy(() => import('./mobile/MobileCreditBookScreen'))
+
 export default function CreditBookPage() {
+  const mobileNav = useMobileNav()
+  const isMobile = mobileNav.isMobile
   const { profile } = useAuth()
+
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
   const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
@@ -50,6 +57,14 @@ export default function CreditBookPage() {
     }, 300)
     return () => clearTimeout(timer)
   }, [searchInput])
+
+  if (isMobile) {
+    return (
+      <Suspense fallback={<Loading />}>
+        <MobileCreditBookScreen />
+      </Suspense>
+    )
+  }
 
   const columns: ColumnDef<TableFeatures, CustomerRecord, unknown>[] = [
     {

@@ -17,16 +17,23 @@ import DataTable from '../../components/data/DataTable'
 import type { TableFeatures } from '../../components/data/table'
 import { getApiErrorMessage } from '../../lib/errors'
 import { formatCurrency, formatDateTime } from '../../lib/utils'
-import { useCustomerPayments, useRecordCreditPayment } from '../../hooks/useCredit'
+import {
+  useCustomerManualCredits,
+  useCustomerPayments,
+  useRecordCreditPayment,
+  useRecordManualCredit,
+} from '../../hooks/useCredit'
 import { useCustomerProfile } from '../../hooks/useCustomers'
 import type { CustomerRecord } from '../../types/customers'
 import {
   CREDIT_PAYMENT_METHOD_LABELS,
   type CreditPaymentMethod,
   type CreditPaymentRecord,
+  type ManualCreditRecord,
 } from '../../types/credit'
 import RecordPaymentDialog from './RecordPaymentDialog'
-import type { RecordPaymentFormValues } from './creditSchema'
+import ManualCreditDialog from './ManualCreditDialog'
+import type { ManualCreditFormValues, RecordPaymentFormValues } from './creditSchema'
 
 interface CreditCustomerDialogProps {
   customer: CustomerRecord
@@ -41,17 +48,23 @@ export default function CreditCustomerDialog({
 }: CreditCustomerDialogProps) {
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
   const [paymentOpen, setPaymentOpen] = useState(false)
+  const [manualOpen, setManualOpen] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
   const paymentsQuery = useCustomerPayments(customer.id, {
     page: pagination.pageIndex,
     pageSize: pagination.pageSize,
   })
+  const manualQuery = useCustomerManualCredits(customer.id, {
+    page: pagination.pageIndex,
+    pageSize: pagination.pageSize,
+  })
   const recordPayment = useRecordCreditPayment()
+  const recordManual = useRecordManualCredit()
   const profileQuery = useCustomerProfile(customer.id)
   const liveCustomer = profileQuery.data ?? customer
   const outstanding = liveCustomer.total_credit
 
-  const columns: ColumnDef<TableFeatures, CreditPaymentRecord, unknown>[] = [
+  const paymentColumns: ColumnDef<TableFeatures, CreditPaymentRecord, unknown>[] = [
     {
       accessorKey: 'created_at',
       header: 'Date',
@@ -78,6 +91,33 @@ export default function CreditCustomerDialog({
     },
   ]
 
+  const manualColumns: ColumnDef<TableFeatures, ManualCreditRecord, unknown>[] = [
+    {
+      accessorKey: 'created_at',
+      header: 'Date',
+      cell: (info) => <Typography variant="body2">{formatDateTime(info.getValue<string>())}</Typography>,
+    },
+    {
+      accessorKey: 'amount',
+      header: 'Amount',
+      cell: (info) => <Typography variant="body2">{formatCurrency(info.getValue<number>())}</Typography>,
+    },
+    {
+      accessorKey: 'remaining_credit',
+      header: 'Outstanding',
+      cell: (info) => (
+        <Typography variant="body2" sx={{ color: info.getValue<number>() > 0 ? 'error.main' : 'success.main' }}>
+          {formatCurrency(info.getValue<number>())}
+        </Typography>
+      ),
+    },
+    {
+      accessorKey: 'reason',
+      header: 'Reason',
+      cell: (info) => <Typography variant="body2">{info.getValue<string | null>() ?? '—'}</Typography>,
+    },
+  ]
+
   const handleSubmit = async (values: RecordPaymentFormValues) => {
     setSubmitError(null)
     try {
@@ -87,6 +127,20 @@ export default function CreditCustomerDialog({
         payment_method: values.payment_method,
       })
       setPaymentOpen(false)
+    } catch (error) {
+      setSubmitError(getApiErrorMessage(error))
+    }
+  }
+
+  const handleManualSubmit = async (values: ManualCreditFormValues) => {
+    setSubmitError(null)
+    try {
+      await recordManual.mutateAsync({
+        customer_id: customer.id,
+        amount: values.amount,
+        reason: values.reason ? String(values.reason) : undefined,
+      })
+      setManualOpen(false)
     } catch (error) {
       setSubmitError(getApiErrorMessage(error))
     }
@@ -112,6 +166,14 @@ export default function CreditCustomerDialog({
         >
           Record Payment
         </Button>
+        <Button
+          variant="outlined"
+          color="warning"
+          onClick={() => setManualOpen(true)}
+          sx={{ ml: 1 }}
+        >
+          Manual Credit
+        </Button>
         <IconButton aria-label="Close" onClick={onClose}>
           <Close />
         </IconButton>
@@ -135,7 +197,7 @@ export default function CreditCustomerDialog({
           <Divider />
           <Typography variant="h6">Payment History</Typography>
           <DataTable<CreditPaymentRecord>
-            columns={columns}
+            columns={paymentColumns}
             data={paymentsQuery.data?.rows ?? []}
             getRowId={(row) => row.id}
             loading={paymentsQuery.isLoading}
@@ -144,6 +206,19 @@ export default function CreditCustomerDialog({
             onPaginationChange={setPagination}
             emptyTitle="No payments recorded"
             emptyDescription="Payments toward this balance will appear here."
+          />
+          <Divider />
+          <Typography variant="h6">Manual Credits</Typography>
+          <DataTable<ManualCreditRecord>
+            columns={manualColumns}
+            data={manualQuery.data?.rows ?? []}
+            getRowId={(row) => row.id}
+            loading={manualQuery.isLoading}
+            rowCount={manualQuery.data?.count ?? 0}
+            pagination={pagination}
+            onPaginationChange={setPagination}
+            emptyTitle="No manual credits recorded"
+            emptyDescription="Credits recorded outside of sales will appear here."
           />
         </Stack>
       </DialogContent>
@@ -156,6 +231,17 @@ export default function CreditCustomerDialog({
         onSubmit={handleSubmit}
         onClose={() => {
           setPaymentOpen(false)
+          setSubmitError(null)
+        }}
+      />
+      <ManualCreditDialog
+        open={manualOpen}
+        customerName={customer.full_name}
+        isSubmitting={recordManual.isPending}
+        submitError={submitError}
+        onSubmit={handleManualSubmit}
+        onClose={() => {
+          setManualOpen(false)
           setSubmitError(null)
         }}
       />

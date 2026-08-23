@@ -48,6 +48,34 @@ export interface RecordCreditPaymentInput {
   payment_method: CreditPaymentMethod
 }
 
+export interface ManualCreditRecord {
+  id: string
+  shop_id: string
+  customer_id: string
+  amount: number
+  paid_amount: number
+  remaining_credit: number
+  reason: string | null
+  created_by: string
+  created_at: string
+}
+
+export interface ManualCreditParams {
+  page: number
+  pageSize: number
+}
+
+export interface ManualCreditResult {
+  rows: ManualCreditRecord[]
+  count: number
+}
+
+export interface RecordManualCreditInput {
+  customer_id: string
+  amount: number
+  reason?: string
+}
+
 export interface CreditSummary {
   total_outstanding: number
   customer_count: number

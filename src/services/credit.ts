@@ -8,7 +8,11 @@ import type {
   CreditPaymentRecord,
   CreditPaymentResult,
   CreditSummary,
+  ManualCreditParams,
+  ManualCreditRecord,
+  ManualCreditResult,
   RecordCreditPaymentInput,
+  RecordManualCreditInput,
 } from '../types/credit'
 
 const creditCustomerSelect =
@@ -128,6 +132,52 @@ export async function recordCreditPayment(input: RecordCreditPaymentInput): Prom
     p_sale_id: null,
     p_amount: input.amount,
     p_payment_method: input.payment_method,
+  })
+  if (error) throw error
+}
+
+export async function listCustomerManualCredits(
+  customerId: string,
+  params: ManualCreditParams,
+): Promise<ManualCreditResult> {
+  const { page, pageSize } = params
+  const from = page * pageSize
+  const to = from + pageSize - 1
+
+  const { data, error, count } = await supabase
+    .from('manual_credits')
+    .select('id, shop_id, customer_id, amount, paid_amount, remaining_credit, reason, created_by, created_at', {
+      count: 'exact',
+    })
+    .eq('customer_id', customerId)
+    .order('created_at', { ascending: false })
+    .range(from, to)
+
+  if (error) throw error
+
+  const rows = (data ?? []).map((row) => {
+    const item = row as unknown as ManualCreditRecord
+    return {
+      id: item.id,
+      shop_id: item.shop_id,
+      customer_id: item.customer_id,
+      amount: Number(item.amount),
+      paid_amount: Number(item.paid_amount),
+      remaining_credit: Number(item.remaining_credit),
+      reason: item.reason,
+      created_by: item.created_by,
+      created_at: item.created_at,
+    } satisfies ManualCreditRecord
+  })
+
+  return { rows, count: count ?? rows.length }
+}
+
+export async function recordManualCredit(input: RecordManualCreditInput): Promise<void> {
+  const { error } = await supabase.rpc('record_manual_credit', {
+    p_customer_id: input.customer_id,
+    p_amount: input.amount,
+    p_reason: input.reason ?? null,
   })
   if (error) throw error
 }
