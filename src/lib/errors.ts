@@ -36,6 +36,9 @@ export function getAuthErrorMessage(error: unknown): string {
     return NETWORK_ERROR_MESSAGE
   }
   if (error instanceof Error) {
+    if (/passkey|webauthn/i.test(error.message)) {
+      return 'Biometric login is not available now.'
+    }
     const code = (error as { code?: string }).code
     if (typeof code === 'string') {
       switch (code) {

@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import type { ColumnDef, PaginationState } from '@tanstack/react-table'
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import InputAdornment from '@mui/material/InputAdornment'
+import Loading from '../../components/feedback/Loading'
 import MenuItem from '@mui/material/MenuItem'
 import Select, { type SelectChangeEvent } from '@mui/material/Select'
 import Stack from '@mui/material/Stack'
@@ -19,6 +20,7 @@ import { type TableFeatures } from '../../components/data/table'
 import PageHeader from '../../components/ui/PageHeader'
 import StatusBadge from '../../components/ui/StatusBadge'
 import ConfirmationDialog from '../../components/ui/ConfirmationDialog'
+import { useMobileNav } from '../../layouts/mobile/mobileNav'
 import { getApiErrorMessage } from '../../lib/errors'
 import { usePermissions } from '../../hooks/usePermissions'
 import { useCreateShop, useShopsList, useUpdateShop } from '../../hooks/useShops'
@@ -29,6 +31,8 @@ import {
   type EditShopFormValues,
 } from './shopsSchema'
 
+const MobileShopsScreen = lazy(() => import('./MobileShopsScreen'))
+
 type DialogState =
   | { type: 'create' }
   | { type: 'edit'; shop: ShopRecord }
@@ -36,6 +40,8 @@ type DialogState =
 type ConfirmState = { shop: ShopRecord; action: 'activate' | 'deactivate' } | null
 
 export default function ShopsPage() {
+  const mobileNav = useMobileNav()
+  const isMobile = mobileNav.isMobile
   const permissions = usePermissions()
   const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 10 })
   const [searchInput, setSearchInput] = useState('')
@@ -62,6 +68,14 @@ export default function ShopsPage() {
     }, 300)
     return () => clearTimeout(timer)
   }, [searchInput])
+
+  if (isMobile) {
+    return (
+      <Suspense fallback={<Loading />}>
+        <MobileShopsScreen />
+      </Suspense>
+    )
+  }
 
   if (!permissions.canManageShops) {
     return (

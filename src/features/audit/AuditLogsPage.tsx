@@ -1,7 +1,8 @@
-import { useEffect, useState } from 'react'
+import { lazy, Suspense, useEffect, useState } from 'react'
 import type { ColumnDef, PaginationState } from '@tanstack/react-table'
 import Box from '@mui/material/Box'
 import InputAdornment from '@mui/material/InputAdornment'
+import Loading from '../../components/feedback/Loading'
 import MenuItem from '@mui/material/MenuItem'
 import Select, { type SelectChangeEvent } from '@mui/material/Select'
 import Stack from '@mui/material/Stack'
@@ -15,12 +16,13 @@ import { useAuditLogs } from '../../hooks/useAudit'
 import { useAuth } from '../../hooks/useAuth'
 import { useShops } from '../../hooks/useShops'
 import { useUserOptions } from '../../hooks/useUsers'
-import { formatDate, formatDateTime } from '../../lib/utils'
+import { formatDateTime } from '../../lib/utils'
 import { AUDIT_ACTION_LABELS, AUDIT_ACTIONS } from '../../types/audit'
 import type { AuditLogRecord } from '../../types/audit'
 import { useMobileNav } from '../../layouts/mobile/mobileNav'
-import { MobileList, MobileRow } from '../../components/mobile/MobileList'
 import AuditDetailDialog from './AuditDetailDialog'
+
+const MobileAuditLogsScreen = lazy(() => import('./MobileAuditLogsScreen'))
 
 export default function AuditLogsPage() {
   const { profile } = useAuth()
@@ -38,7 +40,6 @@ export default function AuditLogsPage() {
 
   const mobileNav = useMobileNav()
   const isMobile = mobileNav.isMobile
-  const [mobileLimit, setMobileLimit] = useState(15)
   const [selectedAudit, setSelectedAudit] = useState<AuditLogRecord | null>(null)
 
   const shopsQuery = useShops()
@@ -49,8 +50,8 @@ export default function AuditLogsPage() {
   const userOptions = userOptionsQuery.data ?? []
 
   const { data, isLoading } = useAuditLogs({
-    page: isMobile ? 0 : pagination.pageIndex,
-    pageSize: isMobile ? mobileLimit : pagination.pageSize,
+    page: pagination.pageIndex,
+    pageSize: pagination.pageSize,
     search,
     shopId: isSuperAdmin ? shopFilter : undefined,
     userId: userFilter || undefined,
@@ -157,6 +158,14 @@ export default function AuditLogsPage() {
     },
   )
 
+  if (isMobile) {
+    return (
+      <Suspense fallback={<Loading />}>
+        <MobileAuditLogsScreen />
+      </Suspense>
+    )
+  }
+
   return (
     <Box>
       <PageHeader
@@ -257,51 +266,17 @@ export default function AuditLogsPage() {
         </Stack>
       </Stack>
 
-      {isMobile ? (
-        <MobileList<AuditLogRecord>
-          items={data?.rows ?? []}
-          getKey={(row) => row.id}
-          loading={isLoading}
-          emptyTitle="No audit entries found"
-          emptyDescription="Actions from sales, payments, and user management will appear here."
-          hasMore={!!data && data.count > mobileLimit}
-          onLoadMore={() => setMobileLimit((prev) => prev + 15)}
-          loadingMore={isLoading}
-          renderRow={(row) => (
-            <MobileRow
-              primary={AUDIT_ACTION_LABELS[row.action] ?? row.action.replace(/_/g, ' ')}
-              secondary={
-                row.user
-                  ? `${row.user.full_name} · ${row.user.role.replace('_', ' ')}`
-                  : 'System'
-              }
-              trailing={
-                <Stack>
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                    {formatDate(row.created_at)}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {row.entity}
-                  </Typography>
-                </Stack>
-              }
-              onClick={() => setSelectedAudit(row)}
-            />
-          )}
-        />
-      ) : (
-        <DataTable<AuditLogRecord>
-          columns={columns}
-          data={data?.rows ?? []}
-          getRowId={(row) => row.id}
-          loading={isLoading}
-          rowCount={data?.count ?? 0}
-          pagination={pagination}
-          onPaginationChange={setPagination}
-          emptyTitle="No audit entries found"
-          emptyDescription="Actions from sales, payments, and user management will appear here."
-        />
-      )}
+      <DataTable<AuditLogRecord>
+        columns={columns}
+        data={data?.rows ?? []}
+        getRowId={(row) => row.id}
+        loading={isLoading}
+        rowCount={data?.count ?? 0}
+        pagination={pagination}
+        onPaginationChange={setPagination}
+        emptyTitle="No audit entries found"
+        emptyDescription="Actions from sales, payments, and user management will appear here."
+      />
 
       <AuditDetailDialog
         record={selectedAudit}

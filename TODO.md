@@ -75,8 +75,8 @@ Milestone: Core operational modules complete.
 ## Phase 5 — Reports, Dashboard & Settings
 
 - [x] Implement dashboard statistics and widgets
-- [ ] Implement reports (sales, revenue, expenses, credit, inventory)
-- [ ] Implement business settings
+- [x] Implement reports (sales, revenue, expenses, credit, inventory)
+- [x] Implement business settings
 - [x] Implement role-based UI visibility
 
 Milestone: All MVP modules complete.
@@ -123,7 +123,7 @@ Spec reference: `docs/Mobile UI Specification.md`
 - [x] Route-level code splitting (`React.lazy` + `Suspense`) for every mobile screen
 
 ### Screens
-- [ ] Login (full-screen, inline errors, optional biometric slot)
+- [x] Login (full-screen, inline errors, optional biometric slot)
 - [x] Dashboard (2-col stat grid, low-stock chips, recent sales, quick actions, pull-to-refresh)
  - [x] Products (inline search, filter chips, swipe actions, infinite scroll, Add/Edit sheet)
  - [x] Customers (inline search, filter chips, swipe actions, infinite scroll, Add/Edit sheet)
@@ -131,11 +131,11 @@ Spec reference: `docs/Mobile UI Specification.md`
 - [x] Receipt (mobile ticket, Print / Save PNG / Download PDF)
   - [x] Credit Book (list, history, Record Payment, Mark Fully Paid)
 - [x] Expenses (list, Record Expense sheet)
-- [ ] Reports (cards, shop/date-range filter sheet, Print/PDF)
-- [ ] Audit Logs (filterable list, role-restricted)
-- [ ] Shops (Super Admin list + Add/Edit/Disable)
+- [x] Reports (cards, shop/date-range filter sheet, Print/PDF)
+- [x] Audit Logs (filterable list, role-restricted)
+- [x] Shops (Super Admin list + Add/Edit/Disable)
 - [x] Users (list + Add/Edit/Activate/Deactivate)
-- [ ] Business Settings (info, logo, contact, receipt footer)
+- [x] Business Settings (info, logo, contact, receipt footer)
 
 ### Reusable Mobile Components
 - [ ] AppBar, BottomTabBar, FAB, BottomSheet, FullScreenModal

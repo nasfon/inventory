@@ -27,6 +27,8 @@ const ReceiptPage = lazy(() => import('../features/sales/mobile/MobileReceiptScr
 const CreditBookPage = lazy(() => import('../features/credit/CreditBookPage'))
 const AuditLogsPage = lazy(() => import('../features/audit/AuditLogsPage'))
 const ExpensesPage = lazy(() => import('../features/expenses/ExpensesPage'))
+const ReportsPage = lazy(() => import('../features/reports/ReportsPage'))
+const SettingsPage = lazy(() => import('../features/settings/SettingsPage'))
 const CustomerProfilePage = lazy(() => import('../features/customers/mobile/MobileCustomerProfileScreen'))
 
 export interface NavigateParams {
@@ -119,7 +121,7 @@ export const navItems: NavItem[] = [
     label: 'Reports',
     icon: Assessment,
     permission: 'reports.view',
-    placeholder: 'Sales, revenue, expenses, credit, and inventory reports are coming soon.',
+    Page: ReportsPage,
   },
   {
     key: 'audit-logs',
@@ -141,7 +143,7 @@ export const navItems: NavItem[] = [
     label: 'Settings',
     icon: Settings,
     permission: 'settings.manage',
-    placeholder: 'Business settings are coming soon.',
+    Page: SettingsPage,
   },
 ]
 

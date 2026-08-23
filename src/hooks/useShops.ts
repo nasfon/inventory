@@ -1,4 +1,10 @@
-import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import {
+  keepPreviousData,
+  useInfiniteQuery,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query'
 import * as shopsService from '../services/shops'
 import type { CreateShopInput, ShopListParams, UpdateShopInput } from '../types/shops'
 
@@ -23,6 +29,22 @@ export function useShopsList(params: ShopListParams) {
   return useQuery({
     queryKey: ['shops', 'list', params],
     queryFn: () => shopsService.listShops(params),
+    placeholderData: keepPreviousData,
+  })
+}
+
+export function useInfiniteShopsList(
+  params: Omit<ShopListParams, 'page' | 'pageSize'>,
+  pageSize = 15,
+) {
+  return useInfiniteQuery({
+    queryKey: ['shops', 'infinite', params, pageSize],
+    queryFn: ({ pageParam }) => shopsService.listShops({ ...params, page: pageParam, pageSize }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) => {
+      const loaded = allPages.reduce((total, page) => total + page.rows.length, 0)
+      return loaded < lastPage.count ? allPages.length : undefined
+    },
     placeholderData: keepPreviousData,
   })
 }

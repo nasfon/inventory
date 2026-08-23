@@ -53,7 +53,8 @@ body {
   }
 }
 
-.receipt-print-area {
+.receipt-print-area,
+.report-print-area {
   display: none;
 }
 
@@ -94,7 +95,8 @@ body {
   body * {
     visibility: hidden;
   }
-  .receipt-print-area {
+  .receipt-print-area,
+  .report-print-area {
     display: block;
     position: absolute;
     left: 0;
@@ -108,10 +110,12 @@ body {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
-  .receipt-print-area * {
+  .receipt-print-area *,
+  .report-print-area * {
     visibility: visible;
   }
-  .receipt-print-area table {
+  .receipt-print-area table,
+  .report-print-area table {
     break-inside: auto;
   }
 }

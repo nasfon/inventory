@@ -26,12 +26,37 @@ export async function listActiveShops(): Promise<ShopOption[]> {
 export async function getShop(shopId: string): Promise<ShopRecord | null> {
   const { data, error } = await supabase
     .from('shops')
-    .select(shopSelect)
+    .select(`${shopSelect}, business_settings(business_name, phone, address, logo_url, receipt_footer)`)
     .eq('id', shopId)
     .maybeSingle()
 
   if (error) throw error
-  return data ? (data as ShopRecord) : null
+  if (!data) return null
+
+  const row = data as ShopRecord & {
+    business_settings?: Array<{
+      business_name: string
+      phone: string | null
+      address: string | null
+      logo_url: string | null
+      receipt_footer: string | null
+    }> | null
+  }
+
+  const settings = row.business_settings?.[0] ?? null
+  const shop = { ...row } as Omit<typeof row, 'business_settings'> as ShopRecord
+  if (settings) {
+    return {
+      ...shop,
+      name: settings.business_name || shop.name,
+      phone: settings.phone ?? shop.phone,
+      address: settings.address ?? shop.address,
+      logo_url: settings.logo_url ?? shop.logo_url,
+      receipt_footer: settings.receipt_footer ?? shop.receipt_footer,
+    }
+  }
+
+  return shop
 }
 
 export async function listShops(params: ShopListParams): Promise<ShopListResult> {

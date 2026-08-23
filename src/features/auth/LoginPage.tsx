@@ -1,10 +1,12 @@
-import { useState, type FormEvent } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import Alert from '@mui/material/Alert'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
 import Card from '@mui/material/Card'
 import CardContent from '@mui/material/CardContent'
 import CircularProgress from '@mui/material/CircularProgress'
+import Divider from '@mui/material/Divider'
+import Fingerprint from '@mui/icons-material/Fingerprint'
 import IconButton from '@mui/material/IconButton'
 import InputAdornment from '@mui/material/InputAdornment'
 import TextField from '@mui/material/TextField'
@@ -14,6 +16,7 @@ import VisibilityOff from '@mui/icons-material/VisibilityOff'
 import Logo from '../../components/ui/Logo'
 import OfflineBanner from '../../components/feedback/OfflineBanner'
 import { getAuthErrorMessage } from '../../lib/errors'
+import { supabase } from '../../lib/supabase'
 import { useAuth } from '../../hooks/useAuth'
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -25,7 +28,26 @@ export default function LoginPage() {
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [biometricAvailable, setBiometricAvailable] = useState(false)
+  const [isBiometricSubmitting, setIsBiometricSubmitting] = useState(false)
+  const [biometricError, setBiometricError] = useState<string | null>(null)
   const { login } = useAuth()
+
+  useEffect(() => {
+    const provider = window.PublicKeyCredential
+    if (provider && typeof provider.isUserVerifyingPlatformAuthenticatorAvailable === 'function') {
+      let active = true
+      provider
+        .isUserVerifyingPlatformAuthenticatorAvailable()
+        .then((available) => {
+          if (active) setBiometricAvailable(available)
+        })
+        .catch(() => {})
+      return () => {
+        active = false
+      }
+    }
+  }, [])
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -39,9 +61,10 @@ export default function LoginPage() {
       nextErrors.password = 'Password is required'
     }
     setFieldErrors(nextErrors)
+    setErrorMessage(null)
+    setBiometricError(null)
     if (Object.keys(nextErrors).length > 0) return
 
-    setErrorMessage(null)
     setIsSubmitting(true)
     try {
       await login(email.trim(), password)
@@ -51,10 +74,25 @@ export default function LoginPage() {
     }
   }
 
+  const handleBiometric = async () => {
+    setBiometricError(null)
+    setErrorMessage(null)
+    setIsBiometricSubmitting(true)
+    try {
+      const { error } = await supabase.auth.signInWithPasskey()
+      if (error) throw error
+    } catch (error) {
+      setBiometricError(
+        getAuthErrorMessage(error) || 'Biometric sign-in is unavailable. Please use your email and password.',
+      )
+      setIsBiometricSubmitting(false)
+    }
+  }
+
   return (
     <Box
       sx={{
-        minHeight: '100vh',
+        minHeight: '100dvh',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
@@ -100,6 +138,7 @@ export default function LoginPage() {
               fullWidth
               autoComplete="email"
               autoFocus
+              sx={{ '& .MuiInputBase-input': { fontSize: 16 } }}
               error={Boolean(fieldErrors.email)}
               helperText={fieldErrors.email}
             />
@@ -110,6 +149,7 @@ export default function LoginPage() {
               onChange={(event) => setPassword(event.target.value)}
               fullWidth
               autoComplete="current-password"
+              sx={{ '& .MuiInputBase-input': { fontSize: 16 } }}
               error={Boolean(fieldErrors.password)}
               helperText={fieldErrors.password}
               slotProps={{
@@ -133,11 +173,31 @@ export default function LoginPage() {
               type="submit"
               variant="contained"
               size="large"
-              disabled={isSubmitting}
+              fullWidth
+              disabled={isSubmitting || isBiometricSubmitting}
               sx={{ mt: 1, py: 1.5, fontSize: '0.95rem', fontWeight: 600, textTransform: 'none' }}
             >
               {isSubmitting ? <CircularProgress size={22} color="inherit" /> : 'Login'}
             </Button>
+
+            {biometricAvailable && (
+              <>
+                <Divider sx={{ my: 0.5 }}>or</Divider>
+                {biometricError && <Alert severity="error">{biometricError}</Alert>}
+                <Button
+                  type="button"
+                  variant="outlined"
+                  size="large"
+                  fullWidth
+                  startIcon={isBiometricSubmitting ? <CircularProgress size={18} color="inherit" /> : <Fingerprint />}
+                  onClick={handleBiometric}
+                  disabled={isSubmitting || isBiometricSubmitting}
+                  sx={{ py: 1.5, fontSize: '0.95rem', fontWeight: 600, textTransform: 'none' }}
+                >
+                  Continue with biometrics
+                </Button>
+              </>
+            )}
           </Box>
         </CardContent>
       </Card>
