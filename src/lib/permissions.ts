@@ -3,14 +3,17 @@ import type { RoleName } from '../types/auth'
 export type Permission =
   | 'dashboard.view'
   | 'products.read'
+  | 'products.browse'
   | 'products.create'
   | 'products.update'
   | 'products.delete'
   | 'customers.read'
+  | 'customers.browse'
   | 'customers.create'
   | 'customers.update'
   | 'customers.delete'
   | 'sales.read'
+  | 'sales.history'
   | 'sales.create'
   | 'sales.correct'
   | 'sales.reverse'
@@ -31,14 +34,17 @@ export type Permission =
 const ALL_PERMISSIONS: Permission[] = [
   'dashboard.view',
   'products.read',
+  'products.browse',
   'products.create',
   'products.update',
   'products.delete',
   'customers.read',
+  'customers.browse',
   'customers.create',
   'customers.update',
   'customers.delete',
   'sales.read',
+  'sales.history',
   'sales.create',
   'sales.correct',
   'sales.reverse',

@@ -68,12 +68,14 @@ export const navItems: NavItem[] = [
     key: 'products',
     label: 'Products',
     icon: Inventory2,
+    permission: 'products.browse',
     Page: ProductsPage,
   },
   {
     key: 'customers',
     label: 'Customers',
     icon: People,
+    permission: 'customers.browse',
     Page: CustomersPage,
   },
   {
@@ -86,6 +88,7 @@ export const navItems: NavItem[] = [
     key: 'sales-history',
     label: 'Sales History',
     icon: ReceiptLong,
+    permission: 'sales.history',
     Page: SalesHistoryPage,
   },
   {

@@ -20,12 +20,11 @@ const PRIMARY_TABS = ['dashboard', 'products', 'sales', 'customers'] as const
 const MODAL_KEYS: PageKey[] = ['sales']
 const HIDE_TABS = new Map<PageKey, true>([['receipt', true], ['customer-profile', true]])
 
-const bottomTabs: BottomTab[] = [
+const baseTabs: BottomTab[] = [
   { key: 'dashboard', label: 'Home', icon: Dashboard },
   { key: 'products', label: 'Products', icon: Inventory2 },
   { key: 'sales', label: 'New Sale', icon: PointOfSale, center: true },
   { key: 'customers', label: 'Customers', icon: People },
-  { key: 'more', label: 'More', icon: MoreHoriz, more: true },
 ]
 
 export default function MobileLayout() {
@@ -44,6 +43,15 @@ export default function MobileLayout() {
   const gesture = useRef<{ dx: number; dy: number }>({ dx: 0, dy: 0 })
 
   const items = useMemo(() => getNavItems(profile?.role), [profile?.role])
+
+  const allowedKeys = new Set<string>(items.map((item) => item.key))
+  const moreItems = items.filter(
+    (item) => !PRIMARY_TABS.includes(item.key as (typeof PRIMARY_TABS)[number]),
+  )
+  const visibleBottomTabs: BottomTab[] = baseTabs.filter((tab) => allowedKeys.has(tab.key))
+  if (moreItems.length > 0) {
+    visibleBottomTabs.push({ key: 'more', label: 'More', icon: MoreHoriz, more: true })
+  }
 
   const topEntry = stack[stack.length - 1]
   const topKey = topEntry.key
@@ -208,7 +216,7 @@ export default function MobileLayout() {
 
         {showBottomBar && (
           <BottomTabBar
-            tabs={bottomTabs}
+            tabs={visibleBottomTabs}
             activeKey={topKey}
             moreActive={!PRIMARY_TABS.includes(topKey as (typeof PRIMARY_TABS)[number])}
             onSelect={(key) => navigate(key as PageKey)}
@@ -227,7 +235,7 @@ export default function MobileLayout() {
         <MoreSheet
           open={moreOpen}
           onClose={() => setMoreOpen(false)}
-          items={items.filter((item) => !PRIMARY_TABS.includes(item.key as (typeof PRIMARY_TABS)[number]))}
+          items={moreItems}
           activeKey={topKey}
           onSelect={(key) => {
             navigate(key)

@@ -8,3 +8,11 @@ export function useDashboardSummary(shopId?: string) {
     staleTime: 30_000,
   })
 }
+
+export function useCashierDashboard() {
+  return useQuery({
+    queryKey: ['dashboard', 'cashier'],
+    queryFn: () => dashboardService.getCashierDashboard(),
+    staleTime: 30_000,
+  })
+}

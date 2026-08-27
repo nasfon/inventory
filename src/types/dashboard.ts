@@ -20,3 +20,8 @@ export interface DashboardSummary {
   low_stock_count: number
   recent_sales: DashboardRecentSale[]
 }
+
+export interface CashierDashboard {
+  sales_today: number
+  recent_sales: DashboardRecentSale[]
+}

@@ -195,7 +195,12 @@ List supports pagination, search, and filter by role.
 
 | Operation            | Client Builder                                  |
 | -------------------- | ----------------------------------------------- |
-| Dashboard summary    | `rpc('dashboard_summary')` (returns totals + recent sales) |
+| Dashboard summary    | `rpc('dashboard_summary')` (admin; returns totals + recent sales) |
+| Cashier home         | `rpc('cashier_dashboard')` (cashier; daily sales count + own last 5) |
+
+`dashboard_summary` is restricted to super admin / shop admin. Cashiers call the
+scoped-down `cashier_dashboard`, which exposes no revenue, credit, expense, or
+inventory figures.
 
 ---
 
@@ -254,7 +259,8 @@ Business-critical operations run as PostgreSQL functions to guarantee atomicity 
 | `correct_sale`            | Adjusts items and stock, updates sale status, requires `reason`. |
 | `reverse_sale`            | Reverses a sale, restores stock, writes audit log, requires `reason`. |
 | `record_credit_payment`   | Inserts credit payment, updates customer `total_credit`, validates against outstanding balance. |
-| `dashboard_summary`       | Aggregates dashboard totals for the current shop scope.        |
+| `dashboard_summary`       | Aggregates dashboard totals for the current shop scope (super admin / shop admin only). |
+| `cashier_dashboard`       | Cashier home: shop's daily sales count + the caller's own five most recent sales. |
 | `report_sales`            | Aggregated sales report for a date range / shop.               |
 | `report_revenue`          | Aggregated revenue report.                                      |
 | `report_expenses`         | Aggregated expense report.                                      |

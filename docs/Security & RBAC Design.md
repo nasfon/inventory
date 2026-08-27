@@ -56,11 +56,19 @@ Legend: C = Create, R = Read, U = Update, D = Delete, V = View
 | Credit Payments     | CRUD        | CRUD       | -       |
 | Expenses            | CRUD        | CRUD       | -       |
 | Reports             | All shops   | Own shop   | -       |
-| Dashboard           | Global      | Own shop   | Own shop |
+| Dashboard           | Global      | Own shop   | Own shop† |
 | Audit Logs          | All shops   | Own shop   | -       |
 | Business Settings   | ✓           | ✓          | -       |
 
 \* Shop Admin can manage users within their assigned shop only, with roles limited to Shop Admin or Cashier (never Super Admin).
+
+† The cashier dashboard is deliberately minimal: a single "New Sale" action, the
+shop's **daily sales count**, and the cashier's **own last 5 transactions**. It exposes
+no revenue, credit, expense, low-stock, or inventory figures. The standalone Products,
+Customers, and Sales History pages are hidden from cashiers; their read access to
+products/customers is retained only to power the New Sale pickers. `dashboard_summary`
+is enforced server-side (raises `forbidden` for cashiers) so this is not a UI-only
+restriction.
 
 ---
 

@@ -78,6 +78,7 @@ Milestone: Core operational modules complete.
 - [x] Implement reports (sales, revenue, expenses, credit, inventory)
 - [x] Implement business settings
 - [x] Implement role-based UI visibility
+- [x] Restrict cashier to a minimal POS home (daily sales count + own last 5; no financials)
 
 Milestone: All MVP modules complete.
 

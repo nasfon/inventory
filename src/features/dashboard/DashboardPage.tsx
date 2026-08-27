@@ -45,6 +45,7 @@ import ExpenseFormDialog from '../expenses/ExpenseFormDialog'
 import type { CreateExpenseFormValues } from '../expenses/expensesSchema'
 
 const MobileDashboardScreen = lazy(() => import('./MobileDashboardScreen'))
+const CashierHome = lazy(() => import('./CashierHome'))
 
 interface StatCardProps {
   icon: ComponentType<SvgIconProps>
@@ -104,6 +105,20 @@ interface DashboardPageProps {
 }
 
 export default function DashboardPage({ onNavigate }: DashboardPageProps = {}) {
+  const { profile } = useAuth()
+
+  if (profile?.role === 'cashier') {
+    return (
+      <Suspense fallback={<Loading />}>
+        <CashierHome onNavigate={onNavigate} />
+      </Suspense>
+    )
+  }
+
+  return <AdminDashboard onNavigate={onNavigate} />
+}
+
+function AdminDashboard({ onNavigate }: DashboardPageProps = {}) {
   const { profile } = useAuth()
   const queryClient = useQueryClient()
   const [shopFilter, setShopFilter] = useState('')
