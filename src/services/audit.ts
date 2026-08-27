@@ -70,3 +70,18 @@ export async function listAuditLogs(params: AuditLogListParams): Promise<AuditLo
   const rows = (data ?? []).map((row) => mapAuditRow(row as Record<string, unknown>))
   return { rows, count: count ?? rows.length }
 }
+
+export async function listSaleAuditTrail(saleId: string): Promise<AuditLogRecord[]> {
+  if (!saleId) return []
+
+  const { data, error } = await supabase
+    .from('audit_logs')
+    .select(auditSelect)
+    .eq('entity', 'sale')
+    .eq('entity_id', saleId)
+    .order('created_at', { ascending: true })
+
+  if (error) throw error
+
+  return (data ?? []).map((row) => mapAuditRow(row as Record<string, unknown>))
+}

@@ -1,4 +1,4 @@
-import { Suspense, useCallback, useMemo, useRef, useState, type TouchEvent } from 'react'
+import { Suspense, useCallback, useEffect, useMemo, useRef, useState, type TouchEvent } from 'react'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 import CircularProgress from '@mui/material/CircularProgress'
@@ -8,6 +8,7 @@ import People from '@mui/icons-material/People'
 import PointOfSale from '@mui/icons-material/PointOfSale'
 import MoreHoriz from '@mui/icons-material/MoreHoriz'
 import Loading from '../../components/feedback/Loading'
+import ConfirmationDialog from '../../components/ui/ConfirmationDialog'
 import { useAuth } from '../../hooks/useAuth'
 import { getNavItems, navItemMap, type NavigateParams, type PageKey } from '../navigation'
 import MobileTopBar from './MobileTopBar'
@@ -38,6 +39,7 @@ export default function MobileLayout() {
   const [pull, setPull] = useState(0)
   const [refreshing, setRefreshing] = useState(false)
   const [signingOut, setSigningOut] = useState(false)
+  const [exitOpen, setExitOpen] = useState(false)
 
   const touchStart = useRef<{ x: number; y: number } | null>(null)
   const gesture = useRef<{ dx: number; dy: number }>({ dx: 0, dy: 0 })
@@ -62,10 +64,10 @@ export default function MobileLayout() {
   const title = titleOverride ?? visibleItem?.label ?? 'IMS'
   const backVisible = stack.length > 1 || showBackOverride
 
-  const pop = () => {
+  const pop = useCallback(() => {
     setPull(0)
     setStack((prev) => (prev.length > 1 ? prev.slice(0, -1) : prev))
-  }
+  }, [])
 
   const navigate = useCallback((key: string, params?: NavigateParams) => {
     setPull(0)
@@ -84,6 +86,31 @@ export default function MobileLayout() {
       return
     }
     setStack((prev) => [...prev, { key: key as PageKey, params }])
+  }, [])
+
+  const handleHardwareBack = useRef(() => {})
+  useEffect(() => {
+    handleHardwareBack.current = () => {
+      if (topKey === 'sales') {
+        navigate('dashboard')
+        return
+      }
+      if (stack.length > 1) {
+        pop()
+        return
+      }
+      setExitOpen(true)
+    }
+  }, [topKey, stack.length, navigate, pop])
+
+  useEffect(() => {
+    window.history.pushState({ imsRoot: true }, '')
+    const onPopState = () => {
+      handleHardwareBack.current()
+      window.history.pushState({ imsRoot: true }, '')
+    }
+    window.addEventListener('popstate', onPopState)
+    return () => window.removeEventListener('popstate', onPopState)
   }, [])
 
   const handleLogout = async () => {
@@ -170,18 +197,19 @@ export default function MobileLayout() {
           onLogout={handleLogout}
         />
 
-        <Box
-          component="main"
-          onTouchStart={onTouchStart}
-          onTouchMove={onTouchMove}
-          onTouchEnd={onTouchEnd}
-          sx={{
-            px: 2,
-            pt: `calc(56px + env(safe-area-inset-top) + 12px)`,
-            transform: pull > 0 ? `translateY(${pull}px)` : undefined,
-            transition: refreshing ? 'transform 200ms ease' : undefined,
-          }}
-        >
+          <Box
+            component="main"
+            onTouchStart={onTouchStart}
+            onTouchMove={onTouchMove}
+            onTouchEnd={onTouchEnd}
+            sx={{
+              pl: 'calc(16px + env(safe-area-inset-left))',
+              pr: 'calc(16px + env(safe-area-inset-right))',
+              pt: `calc(56px + env(safe-area-inset-top) + 12px)`,
+              transform: pull > 0 ? `translateY(${pull}px)` : undefined,
+              transition: refreshing ? 'transform 200ms ease' : undefined,
+            }}
+          >
           {(pull > 0 || refreshing) && (
             <Box
               sx={{
@@ -241,6 +269,18 @@ export default function MobileLayout() {
             navigate(key)
             setMoreOpen(false)
           }}
+        />
+
+        <ConfirmationDialog
+          open={exitOpen}
+          title="Exit app?"
+          message="Are you sure you want to exit the app?"
+          confirmLabel="Yes, exit"
+          cancelLabel="No"
+          confirmColor="error"
+          loading={signingOut}
+          onConfirm={handleLogout}
+          onCancel={() => setExitOpen(false)}
         />
       </Box>
     </MobileNavContext.Provider>

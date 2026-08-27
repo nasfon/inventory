@@ -1,6 +1,5 @@
 import { Controller, type Control, type FieldValues, type Path } from 'react-hook-form'
 import TextField, { type TextFieldProps } from '@mui/material/TextField'
-import { formatMoneyInput, sanitizeMoneyInput } from '../../lib/utils'
 
 interface FormMoneyFieldProps<T extends FieldValues>
   extends Omit<
@@ -25,10 +24,11 @@ export default function FormMoneyField<T extends FieldValues>({
           {...field}
           {...rest}
           fullWidth
-          type="text"
+          type="number"
           inputMode="decimal"
-          value={formatMoneyInput(field.value ?? '')}
-          onChange={(event) => field.onChange(sanitizeMoneyInput(event.target.value))}
+          slotProps={{ htmlInput: { step: 'any', min: 0, inputMode: 'decimal' } }}
+          value={field.value ?? ''}
+          onChange={(event) => field.onChange(event.target.value)}
           error={!!fieldState.error}
           helperText={fieldState.error?.message}
         />

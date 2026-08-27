@@ -1,8 +1,10 @@
 import { supabase } from '../lib/supabase'
 import type { CustomerSalesParams, CustomerSalesResult } from '../types/customers'
 import type {
+  CorrectSaleInput,
   CreateSaleInput,
   PaymentMethod,
+  ReverseSaleInput,
   SaleDetail,
   SaleItemRecord,
   SaleListParams,
@@ -96,6 +98,28 @@ export async function listCustomerSales(
 
   const rows = (data ?? []).map((row) => mapSaleRow(row as Record<string, unknown>))
   return { rows, count: count ?? rows.length }
+}
+
+export async function correctSale(input: CorrectSaleInput): Promise<string> {
+  const { data, error } = await supabase.rpc('correct_sale', {
+    p_sale_id: input.sale_id,
+    p_items: input.items.map((item) => ({
+      product_id: item.product_id,
+      quantity: item.quantity,
+    })),
+    p_reason: input.reason,
+  })
+  if (error) throw error
+  return data as string
+}
+
+export async function reverseSale(input: ReverseSaleInput): Promise<string> {
+  const { data, error } = await supabase.rpc('reverse_sale', {
+    p_sale_id: input.sale_id,
+    p_reason: input.reason,
+  })
+  if (error) throw error
+  return data as string
 }
 
 export async function listSales(params: SaleListParams): Promise<SaleListResult> {

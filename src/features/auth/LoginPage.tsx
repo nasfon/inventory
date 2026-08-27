@@ -98,7 +98,10 @@ export default function LoginPage() {
         alignItems: 'center',
         justifyContent: 'center',
         background: 'linear-gradient(160deg, #eff6ff 0%, #ffffff 100%)',
-        p: 2,
+        pt: 'calc(16px + env(safe-area-inset-top))',
+        pb: 'calc(16px + env(safe-area-inset-bottom))',
+        pl: 'calc(16px + env(safe-area-inset-left))',
+        pr: 'calc(16px + env(safe-area-inset-right))',
       }}
     >
       <Box sx={{ width: '100%', maxWidth: 460, mb: 2 }}>

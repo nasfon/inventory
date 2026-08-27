@@ -14,6 +14,12 @@
 
 ---
 
+> **Canonical reference:** the multi-tenant product evolution — billing, per-shop branding,
+> feature flags, configurable roles, and white-label APK/AAB distribution — is specified in
+> **`Product Architecture.md`** (the single source of truth). This document reflects the
+> original MVP scope and is kept for reference; where the two conflict, the canonical
+> document wins.
+
 # 1. Overview
 
 The application does **not** implement a custom REST server. The React SPA talks directly to Supabase using the **Supabase JavaScript Client SDK**:

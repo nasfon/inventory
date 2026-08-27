@@ -19,7 +19,7 @@ export default function FAB({ icon: Icon, label, color = 'primary', onClick }: F
   const style = useMemo(
     () => ({
       position: 'fixed' as const,
-      right: 16,
+      right: 'calc(16px + env(safe-area-inset-right))',
       bottom: FAB_BOTTOM,
       zIndex: 1200,
     }),

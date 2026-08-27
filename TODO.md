@@ -13,7 +13,7 @@ Tracking checklist for the Inventory Management System (IMS) MVP.
 - [x] Set up Git repository and branching strategy
 - [ ] Provision Supabase project and Vercel project
 - [x] Scaffold Vite + React + TypeScript project
-- [x] Install and configure frontend libraries (MUI, Tailwind CSS, GSAP, TanStack Query/Table, React Hook Form, Zod)
+- [x] Install and configure frontend libraries (MUI, Tailwind CSS, TanStack Query/Table, React Hook Form, Zod)
 - [x] Set up project folder structure, MUI theme, and shared component library
 - [x] Define environment variables and secrets management (.env.example)
 
@@ -65,7 +65,7 @@ Milestone: Customer and credit modules complete.
 - [ ] Implement automatic stock deduction
 - [x] Implement sales history and search
 - [x] Implement receipt generation, printing, and PDF download
-- [ ] Implement sales correction and reversal with reason and audit trail
+- [x] Implement sales correction and reversal with reason and audit trail
 - [x] Implement expenses module
 
 Milestone: Core operational modules complete.
@@ -150,7 +150,7 @@ Spec reference: `docs/Mobile UI Specification.md`
 - [ ] Haptic-style tap feedback, pull-to-refresh, skeletons/spinners
 
 ### Accessibility & Performance
-- [ ] Safe-area insets on all edges; dynamic Type / system font scaling to 200%
+- [x] Safe-area insets on all edges; dynamic Type / system font scaling to 200%
 - [ ] WCAG AA contrast, focus states, `prefers-reduced-motion`
 - [ ] Debounced search (300ms), server-side pagination / infinite scroll, explicit column selection
 - [ ] Virtualize lists >100 rows (`@tanstack/react-virtual`)

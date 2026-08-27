@@ -8,6 +8,11 @@
 
 ---
 
+> **Canonical reference:** white-label APK/AAB distribution, runtime-vs-build-time branding,
+> and the mobile build pipeline are specified in **`Product Architecture.md`** (the single
+> source of truth). This document is UI-only; where the two conflict, the canonical document
+> wins.
+
 # 0. Scope & Ground Rules
 
 This document is **UI-only**. It defines layout, navigation, components, interaction, and visual behaviour for the IMS mobile experience. It does **not** change schemas, APIs, RPCs, or business logic. It extends (never contradicts) the existing desktop/tablet `Frontend UI Specification.md`.
@@ -312,7 +317,10 @@ Per AGENTS.md performance rules:
 
 # 13. Open Questions (for clarification)
 
-1. Should the mobile experience be a **PWA** (installable, offline-shell) or a true **native wrapper** (Capacitor/Expo)? This affects biometric login, push, and install.
+1. **Native wrapper vs PWA — RESOLVED: Capacitor.** Per `Product Architecture.md` Part 3, the
+   mobile app is a Capacitor wrapper so it can be distributed as branded APK/AAB artifacts
+   (white-label). One shared APK serves runtime-branded shops; per-client branded APKs are
+   produced by CI from the same codebase. (A PWA cannot carry per-client app icon/name/splash.)
 2. Confirm **bottom-tab item set** per role and whether Cashier's center tab is "New Sale" only.
 3. Preference for **sheet vs full-screen modal** on forms (e.g., Add Product).
 4. Any need for **offline mode** (draft sales / cached products) on poor connectivity?

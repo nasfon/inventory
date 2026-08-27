@@ -14,7 +14,7 @@ A multi-shop inventory, sales, customer-credit, and expense web app.
 | UI framework | React 19 (React Compiler enabled) |
 | Component library | Material UI (MUI) |
 | Styling | Tailwind CSS v4 |
-| Animation | GSAP |
+| Animation | CSS transitions (no animation library) |
 | Server state | TanStack Query |
 | Data tables | TanStack Table |
 | Forms | React Hook Form |

@@ -14,6 +14,17 @@ export interface SaleItemInput {
   quantity: number
 }
 
+export interface CorrectSaleInput {
+  sale_id: string
+  items: SaleItemInput[]
+  reason: string
+}
+
+export interface ReverseSaleInput {
+  sale_id: string
+  reason: string
+}
+
 export interface CreateSaleInput {
   shop_id: string
   customer_id: string | null

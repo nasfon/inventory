@@ -36,17 +36,19 @@ export default function MobileTopBar({
     profile?.role === 'super_admin' ? 'error' : profile?.role === 'shop_admin' ? 'primary' : 'secondary'
 
   return (
-    <AppBar
-      position="fixed"
-      color="inherit"
-      sx={{
-        zIndex: (theme) => theme.zIndex.drawer + 1,
-        borderBottom: 1,
-        borderColor: 'divider',
-        pt: 'env(safe-area-inset-top)',
-      }}
-    >
-      <Toolbar sx={{ gap: 1, minHeight: 56 }}>
+     <AppBar
+       position="fixed"
+       color="inherit"
+       sx={{
+         zIndex: (theme) => theme.zIndex.drawer + 1,
+         borderBottom: 1,
+         borderColor: 'divider',
+         pt: 'env(safe-area-inset-top)',
+         pl: 'calc(8px + env(safe-area-inset-left))',
+         pr: 'calc(8px + env(safe-area-inset-right))',
+       }}
+     >
+       <Toolbar sx={{ gap: 1, minHeight: 56, px: 0 }}>
         {showBack ? (
           <IconButton edge="start" color="inherit" aria-label="Back" onClick={onBack}>
             <ArrowBack />

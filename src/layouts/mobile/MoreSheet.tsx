@@ -25,6 +25,8 @@ export default function MoreSheet({ open, onClose, items, activeKey, onSelect }:
           bgcolor: 'background.paper',
           maxHeight: '80vh',
           pb: 'env(safe-area-inset-bottom)',
+          pl: 'env(safe-area-inset-left)',
+          pr: 'env(safe-area-inset-right)',
         }}
         role="dialog"
         aria-label="More"

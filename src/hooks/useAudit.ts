@@ -4,7 +4,7 @@ import {
   useQuery,
 } from '@tanstack/react-query'
 import * as auditService from '../services/audit'
-import type { AuditLogListParams } from '../types/audit'
+import type { AuditLogListParams, AuditLogRecord } from '../types/audit'
 
 export function useAuditLogs(params: AuditLogListParams) {
   return useQuery({
@@ -27,5 +27,13 @@ export function useInfiniteAuditLogs(
       return loaded < lastPage.count ? allPages.length : undefined
     },
     placeholderData: keepPreviousData,
+  })
+}
+
+export function useSaleAuditTrail(saleId: string | null) {
+  return useQuery<AuditLogRecord[]>({
+    queryKey: ['audit-logs', 'sale', saleId],
+    queryFn: () => auditService.listSaleAuditTrail(saleId as string),
+    enabled: Boolean(saleId),
   })
 }

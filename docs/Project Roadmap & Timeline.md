@@ -8,6 +8,12 @@
 
 ---
 
+> **Canonical reference:** the multi-tenant product evolution — billing, per-shop branding,
+> feature flags, configurable roles, and white-label APK/AAB distribution — is specified in
+> **`Product Architecture.md`** (the single source of truth). This document reflects the
+> original MVP scope and is kept for reference; where the two conflict, the canonical
+> document wins.
+
 # 1. Purpose
 
 This document defines the project phases, milestones, deliverables, task breakdown, dependencies, and estimated timeline for delivering the Inventory Management System (IMS) MVP.
@@ -43,7 +49,7 @@ Activities
 * Set up Git repository and branching strategy.
 * Provision Supabase project and Vercel project.
 * Scaffold Vite + React + TypeScript project.
-* Install and configure frontend libraries (MUI, Tailwind CSS, GSAP, TanStack Query/Table, React Hook Form, Zod).
+* Install and configure frontend libraries (MUI, Tailwind CSS, TanStack Query/Table, React Hook Form, Zod).
 * Set up project folder structure, MUI theme, and shared component library.
 * Define environment variables and secrets management.
 
@@ -246,7 +252,7 @@ Total estimated duration: **9 weeks** (~2 months).
 ## Frontend
 
 * Set up layout, navigation, and shared components.
-* Configure MUI theme, Tailwind utilities, and GSAP animations.
+* Configure MUI theme, Tailwind utilities, and CSS transitions.
 * Set up TanStack Query client and the Supabase data access layer.
 * Define Zod schemas and form patterns with React Hook Form.
 * Implement login page.

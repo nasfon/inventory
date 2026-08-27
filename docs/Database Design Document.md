@@ -8,6 +8,12 @@
 
 ---
 
+> **Canonical reference:** the multi-tenant product evolution — billing, per-shop branding,
+> feature flags, configurable roles, and white-label APK/AAB distribution — is specified in
+> **`Product Architecture.md`** (the single source of truth). The additive multi-tenant
+> tables are summarized in §12 below; where this document conflicts with the canonical
+> document, the canonical document wins.
+
 # 1. Purpose
 
 This document defines the database structure for the Inventory Management System (IMS).
@@ -501,4 +507,62 @@ Total Core Tables (MVP)
 12. business_settings
 
 This schema provides a scalable foundation for a secure, multi-shop inventory management system while remaining focused on the MVP requirements.
+
+---
+
+## 12. Multi-Tenant Extensions (Additive)
+
+Per `Product Architecture.md`, the following are added for billing, branding, feature flags,
+and configurable roles. They are **additive** — none of the core MVP tables above change.
+Tenant = shop for v1 (no `organizations` table yet; `org_id` is reserved).
+
+### 12.1 shop_billing
+
+| Column | Type | Notes |
+| ------ | ---- | ----- |
+| shop_id | uuid PK → shops.id ON DELETE CASCADE | tenant = shop |
+| plan | text CHECK IN ('onetime','monthly') | |
+| status | text CHECK IN ('trial','active','past_due','expired','canceled') | |
+| trial_end | timestamptz | default now() + 30 days |
+| current_period_start | timestamptz | monthly only |
+| current_period_end | timestamptz | monthly only |
+| provider | text | 'paystack' |
+| provider_customer_id | text | Paystack reference |
+| provider_subscription_id | text | Paystack reference |
+| provider_authorization | text | Paystack reference |
+| updated_at | timestamptz | |
+
+Index: `idx_shop_billing_status (status)`.
+
+### 12.2 business_settings (branding columns, nullable)
+
+Add `primary_color`, `accent_color`, `theme_mode` to the existing `business_settings` table.
+Null = fall back to the default theme. Backward compatible.
+
+### 12.3 shop_features
+
+| Column | Type |
+| ------ | ---- |
+| shop_id | uuid → shops.id |
+| feature_key | text |
+| enabled | boolean |
+
+Primary key `(shop_id, feature_key)`. Flags: `expenses`, `credit`, `reports`, `audit_logs`.
+
+### 12.4 permissions + role_permissions
+
+- `permissions` catalog (`permission_key`, `description`) — read-only seed.
+- `role_permissions (role_id, permission_key, granted)` — data-driven within-shop checks,
+  replacing role-*name* branching in RLS/RPC via `auth_has_permission(p text)`.
+- `super_admin` remains hardcoded cross-tenant; never editable data.
+
+### 12.5 Security helpers (SECURITY DEFINER, `set search_path = public`)
+
+- `auth_has_permission(p text) returns boolean` — joins users → roles → role_permissions.
+- `auth_has_access() returns boolean` — billing gate (trial / active / canceled / past_due
+  within a 7-day grace).
+- `auth_feature_enabled(feature text) returns boolean` — feature-flag gate.
+
+All operational RPCs guard with `auth_has_access()`; policies keep `shop_id = auth_shop_id()`
+as the first predicate.
 

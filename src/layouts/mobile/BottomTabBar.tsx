@@ -40,6 +40,8 @@ export default function BottomTabBar({ tabs, activeKey, moreActive, onSelect }: 
         borderColor: 'divider',
         zIndex: (theme) => theme.zIndex.appBar,
         pb: 'env(safe-area-inset-bottom)',
+        pl: 'env(safe-area-inset-left)',
+        pr: 'env(safe-area-inset-right)',
       }}
     >
       {tabs.map((tab) => {

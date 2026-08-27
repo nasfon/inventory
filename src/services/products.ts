@@ -94,3 +94,16 @@ export async function softDeleteProduct(productId: string): Promise<void> {
     .eq('id', productId)
   if (error) throw error
 }
+
+export async function getProductQuantities(ids: string[]): Promise<Record<string, number>> {
+  if (ids.length === 0) return {}
+
+  const { data, error } = await supabase.from('products').select('id, quantity').in('id', ids)
+  if (error) throw error
+
+  const map: Record<string, number> = {}
+  for (const row of (data ?? []) as { id: string; quantity: number }[]) {
+    map[row.id] = Number(row.quantity)
+  }
+  return map
+}

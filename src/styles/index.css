@@ -37,6 +37,12 @@
   --radius-md: var(--mui-shape-borderRadius);
 }
 
+html {
+  font-size: 100%;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
 body {
   margin: 0;
   -webkit-font-smoothing: antialiased;

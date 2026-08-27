@@ -8,6 +8,12 @@
 
 ---
 
+> **Canonical reference:** the multi-tenant product evolution — billing, per-shop branding,
+> feature flags, configurable roles, and white-label APK/AAB distribution — is specified in
+> **`Product Architecture.md`** (the single source of truth). The multi-tenant access gates
+> are summarized in §12 below; where this document conflicts with the canonical document,
+> the canonical document wins.
+
 # 1. Purpose
 
 This document defines the security model for the Inventory Management System (IMS), including the detailed role-based access control (RBAC) matrix, Row Level Security (RLS) policy design, and general security requirements.
@@ -227,3 +233,38 @@ Mandatory Audited Actions
 * Verify rate limiting on auth endpoints.
 * Verify no service role key exposure in client bundle.
 * Verify audit log entries are created for all mandatory actions.
+
+---
+
+# 12. Multi-Tenant Access Gates (Additive)
+
+Per `Product Architecture.md`, the following extend the RBAC/RLS model for the multi-tenant
+product. Tenant = shop for v1.
+
+## Billing gate (`auth_has_access`)
+
+Login is always allowed; *operations* are gated. A SECURITY DEFINER function
+`auth_has_access() returns boolean` computes access from `shop_billing`:
+
+- `trial` AND `now() < trial_end`
+- `active` AND (`plan = 'onetime'` OR `now() < current_period_end`)
+- `canceled` AND `now() < current_period_end`
+- `past_due` AND `now() < current_period_end + 7 days` (grace)
+
+Every operational RPC (`create_sale`, `correct_sale`, `reverse_sale`,
+`record_credit_payment`, `record_manual_credit`, product/customer/expense writes, user
+management) raises `subscription_required` unless `auth_has_access()` is true. The Paywall
+reads only `shops` / `business_settings` / `shop_billing` (exempted).
+
+## Permission helpers
+
+- `auth_has_permission(p text) returns boolean` — joins users → roles → role_permissions;
+  replaces within-shop role-*name* checks. `super_admin` stays hardcoded for cross-shop access.
+- `auth_feature_enabled(feature text) returns boolean` — feature-flag gate from `shop_features`.
+
+## Hard rules
+
+- Every new SECURITY DEFINER helper must pin `set search_path = public` (RLS-takeover vector).
+- `shop_id = auth_shop_id()` remains the **first** predicate in every policy, even alongside
+  a permission check: `auth_is_super_admin() OR (shop_id = auth_shop_id() AND auth_has_permission(...))`.
+- Enforce cross-shop isolation with a permanent CI test (Shop A token cannot read/write Shop B).

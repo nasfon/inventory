@@ -18,7 +18,7 @@ import ShoppingCartCheckout from '@mui/icons-material/ShoppingCartCheckout'
 import PageHeader from '../../components/ui/PageHeader'
 import EmptyState from '../../components/ui/EmptyState'
 import { getApiErrorMessage } from '../../lib/errors'
-import { formatCurrency, formatMoneyInput, roundToTwo, sanitizeMoneyInput } from '../../lib/utils'
+import { formatCurrency, roundToTwo, sanitizeMoneyInput } from '../../lib/utils'
 import { useAuth } from '../../hooks/useAuth'
 import { useShops } from '../../hooks/useShops'
 import { useCreateSale } from '../../hooks/useSales'
@@ -215,13 +215,10 @@ export default function NewSalePage() {
               </Stack>
               <TextField
                 label="Amount paid"
-                type="text"
+                type="number"
                 inputMode="decimal"
-                value={
-                  amountPaidInput === null
-                    ? formatMoneyInput(String(total))
-                    : formatMoneyInput(amountPaidInput)
-                }
+                slotProps={{ htmlInput: { step: 'any', min: 0, inputMode: 'decimal' } }}
+                value={amountPaidInput === null ? String(total) : amountPaidInput}
                 onChange={(event) => setAmountPaidInput(sanitizeMoneyInput(event.target.value))}
                 size="small"
                 fullWidth
