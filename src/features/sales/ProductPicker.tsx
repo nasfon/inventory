@@ -80,7 +80,11 @@ export default function ProductPicker({ shopId, addedIds, onAdd }: ProductPicker
                       variant={added ? 'text' : 'contained'}
                       disabled={added || product.quantity <= 0}
                       startIcon={added ? <CheckCircle /> : <Add />}
-                      onClick={() => onAdd(product)}
+                      onClick={() => {
+                        onAdd(product)
+                        setSearchInput('')
+                        setSearch('')
+                      }}
                     >
                       {added ? 'Added' : 'Add'}
                     </Button>

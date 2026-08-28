@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import Add from '@mui/icons-material/Add'
 import DeleteOutlined from '@mui/icons-material/DeleteOutlined'
 import Remove from '@mui/icons-material/Remove'
@@ -6,6 +7,7 @@ import Divider from '@mui/material/Divider'
 import IconButton from '@mui/material/IconButton'
 import Paper from '@mui/material/Paper'
 import Stack from '@mui/material/Stack'
+import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import { formatCurrency } from '../../lib/utils'
 
@@ -25,7 +27,23 @@ interface SaleCartProps {
 }
 
 export default function SaleCart({ items, onChangeQuantity, onRemove }: SaleCartProps) {
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [draft, setDraft] = useState('')
+
   const total = items.reduce((sum, item) => sum + item.unit_price * item.quantity, 0)
+
+  const startEditing = (item: CartLine) => {
+    setEditingId(item.product_id)
+    setDraft(String(item.quantity))
+  }
+
+  const commitEditing = (item: CartLine) => {
+    const parsed = Math.trunc(Number(draft))
+    if (Number.isFinite(parsed) && parsed >= 1) {
+      onChangeQuantity(item.product_id, Math.min(parsed, item.available))
+    }
+    setEditingId(null)
+  }
 
   if (items.length === 0) {
     return (
@@ -65,12 +83,49 @@ export default function SaleCart({ items, onChangeQuantity, onRemove }: SaleCart
               >
                 <Remove fontSize="small" />
               </IconButton>
-              <Typography
-                variant="body2"
-                sx={{ minWidth: 28, textAlign: 'center', fontWeight: 600 }}
-              >
-                {item.quantity}
-              </Typography>
+              {editingId === item.product_id ? (
+                <TextField
+                  autoFocus
+                  type="number"
+                  inputMode="numeric"
+                  value={draft}
+                  onChange={(event) => setDraft(event.target.value)}
+                  onBlur={() => commitEditing(item)}
+                  onFocus={(event) => event.target.select()}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.preventDefault()
+                      commitEditing(item)
+                    }
+                  }}
+                  slotProps={{ htmlInput: { min: 1, step: 1, inputMode: 'numeric' } }}
+                  size="small"
+                  sx={{ width: 56 }}
+                />
+              ) : (
+                <Typography
+                  variant="body2"
+                  role="button"
+                  tabIndex={0}
+                  aria-label="Edit quantity"
+                  onClick={() => startEditing(item)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                      event.preventDefault()
+                      startEditing(item)
+                    }
+                  }}
+                  sx={{
+                    minWidth: 28,
+                    textAlign: 'center',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    userSelect: 'none',
+                  }}
+                >
+                  {item.quantity}
+                </Typography>
+              )}
               <IconButton
                 size="small"
                 aria-label="Increase quantity"
