@@ -1,5 +1,6 @@
 import { Suspense, useCallback, useEffect, useMemo, useRef, useState, type TouchEvent } from 'react'
 import Box from '@mui/material/Box'
+import Button from '@mui/material/Button'
 import Typography from '@mui/material/Typography'
 import CircularProgress from '@mui/material/CircularProgress'
 import Dashboard from '@mui/icons-material/Dashboard'
@@ -40,6 +41,7 @@ export default function MobileLayout() {
   const [refreshing, setRefreshing] = useState(false)
   const [signingOut, setSigningOut] = useState(false)
   const [exitOpen, setExitOpen] = useState(false)
+  const [appClosed, setAppClosed] = useState(false)
 
   const touchStart = useRef<{ x: number; y: number } | null>(null)
   const gesture = useRef<{ dx: number; dy: number }>({ dx: 0, dy: 0 })
@@ -91,6 +93,7 @@ export default function MobileLayout() {
   const handleHardwareBack = useRef(() => {})
   useEffect(() => {
     handleHardwareBack.current = () => {
+      if (appClosed) return
       if (topKey === 'sales') {
         navigate('dashboard')
         return
@@ -101,7 +104,13 @@ export default function MobileLayout() {
       }
       setExitOpen(true)
     }
-  }, [topKey, stack.length, navigate, pop])
+  }, [topKey, stack.length, navigate, pop, appClosed])
+
+  const handleExit = useCallback(() => {
+    setExitOpen(false)
+    window.close()
+    setAppClosed(true)
+  }, [])
 
   useEffect(() => {
     window.history.pushState({ imsRoot: true }, '')
@@ -177,6 +186,30 @@ export default function MobileLayout() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [topParams],
   )
+
+  if (appClosed) {
+    return (
+      <Box
+        sx={{
+          minHeight: '100vh',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 2,
+          p: 3,
+          textAlign: 'center',
+          bgcolor: 'background.default',
+        }}
+      >
+        <Typography variant="h6">App closed</Typography>
+        <Typography color="text.secondary">The app has been closed.</Typography>
+        <Button variant="contained" onClick={() => window.location.reload()}>
+          Reopen
+        </Button>
+      </Box>
+    )
+  }
 
   return (
     <MobileNavContext.Provider value={navValue}>
@@ -278,8 +311,7 @@ export default function MobileLayout() {
           confirmLabel="Yes, exit"
           cancelLabel="No"
           confirmColor="error"
-          loading={signingOut}
-          onConfirm={handleLogout}
+          onConfirm={handleExit}
           onCancel={() => setExitOpen(false)}
         />
       </Box>
